@@ -11,12 +11,16 @@ module.exports = {
 
     const commands = commandFiles.map(file => {
       const command = require(path.join(commandsDir, file));
-      return `⟿ ${command.name}\n  - ${command.description}\n  - Credits: ${command.author}`;
+      return `│ - ${command.name}`;
     });
 
-    const totalCommands = commandFiles.length;
-    const helpMessage = `Here are the available commands: \nTotal commands: ${totalCommands} \n\n${commands.join('\n\n')}`;
-    
+    const helpMessage = `━━━━━━━━━━━━━━━━
+𝙰𝚟𝚊𝚒𝚕𝚊𝚋𝚕𝚎 𝙲𝚘𝚖𝚖𝚊𝚗𝚍𝚜 
+╭─╼━━━━━━━━╾─╮
+${commands.join('\n')}
+╰─━━━━━━━━━╾─╯
+━━━━━━━━━━━━━━━━`;
+
     sendMessage(senderId, { text: helpMessage }, pageAccessToken);
   }
 };
