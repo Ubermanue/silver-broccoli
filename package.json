@@ -11,11 +11,13 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^18.0.6",
-    "axios": "^1.7.2",
-    "body-parser": "^1.20.2",
-    "express": "^4.19.2",
+    "axios": "^1.7.7",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.1",
+    "fs": "^0.0.1-security",
     "node-fetch": "^3.3.2",
     "request": "^2.88.2",
+    "uri-js": "^4.4.1",
     "winston": "^3.13.0"
   },
   "engines": {
