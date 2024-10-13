@@ -1,6 +1,40 @@
 const axios = require('axios');
-const FormData = require('form-data');
 const fs = require('fs');
+const path = require('path');
+
+const cacheFolder = path.join(__dirname, 'commands', 'cache');
+
+// Ensure the cache folder exists
+const ensureCacheFolderExists = () => {
+  if (!fs.existsSync(cacheFolder)) {
+    fs.mkdirSync(cacheFolder, { recursive: true });
+  }
+};
+
+// Download and stream the track using Axios
+const downloadTrack = async (url) => {
+  ensureCacheFolderExists();
+  const filePath = path.join(cacheFolder, `${Date.now()}.mp3`);
+
+  try {
+    const response = await axios({
+      url,
+      method: 'GET',
+      responseType: 'stream',
+    });
+
+    const writer = fs.createWriteStream(filePath);
+    response.data.pipe(writer);
+
+    return new Promise((resolve, reject) => {
+      writer.on('finish', () => resolve(filePath));
+      writer.on('error', reject);
+    });
+  } catch (error) {
+    console.error('Error downloading track:', error.message);
+    throw new Error('Failed to download track.');
+  }
+};
 
 module.exports = {
   name: 'spotify',
@@ -22,55 +56,30 @@ module.exports = {
       const spotifyLink = response.data.trackURLs?.[0];
 
       if (spotifyLink) {
-        // Step 1: Download the audio file from the Spotify link
-        const audioResponse = await axios.get(spotifyLink, { responseType: 'stream' });
-        const filePath = `/tmp/${Date.now()}.mp3`; // Temporarily store the file
-        
-        // Step 2: Save the file to disk temporarily
-        const writer = fs.createWriteStream(filePath);
-        audioResponse.data.pipe(writer);
-        
-        // Wait for the file to finish writing
-        await new Promise((resolve, reject) => {
-          writer.on('finish', resolve);
-          writer.on('error', reject);
-        });
+        // Download the Spotify track using the stream
+        const filePath = await downloadTrack(spotifyLink);
 
-        // Step 3: Upload the file to Facebook via attachment upload process
-        const form = new FormData();
-        form.append('filedata', fs.createReadStream(filePath));
-        form.append('access_token', pageAccessToken);
-
-        const uploadUrl = `https://graph.facebook.com/v11.0/me/message_attachments`;
-        const uploadResponse = await axios.post(uploadUrl, form, {
-          headers: {
-            ...form.getHeaders(),
-          },
-        });
-
-        const attachmentId = uploadResponse.data.attachment_id;
-
-        // Step 4: Send the audio file as an attachment
+        // Send the MP3 file as an attachment
         await sendMessage(senderId, {
           attachment: {
             type: 'audio',
             payload: {
-              attachment_id: attachmentId,
+              url: filePath,  // Send the local file path of the downloaded audio
               is_reusable: true
             }
           }
         }, pageAccessToken);
 
-        // Step 5: Clean up the temporary file
+        // Clean up the downloaded file after sending
         fs.unlink(filePath, (err) => {
           if (err) console.error("Error deleting file:", err);
+          else console.log("File deleted successfully.");
         });
-
       } else {
         sendMessage(senderId, { text: 'Sorry, no Spotify track found for that query.' }, pageAccessToken);
       }
     } catch (error) {
-      console.error('Error retrieving Spotify track or uploading:', error);
+      console.error('Error processing Spotify request:', error);
       sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
     }
   }
