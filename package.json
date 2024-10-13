@@ -15,6 +15,7 @@
     "body-parser": "^1.20.3",
     "express": "^4.21.1",
     "fs": "^0.0.1-security",
+    "groq-sdk": "^0.7.0",
     "node-fetch": "^3.3.2",
     "request": "^2.88.2",
     "uri-js": "^4.4.0",
