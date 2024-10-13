@@ -15,11 +15,12 @@ module.exports = {
       if (response.data && response.data.length > 0) {
         const tracks = response.data;
         const firstTrack = tracks[0];
-        const audioAttachment = {
-          type: 'audio',
-          url: firstTrack.preview_mp3,
-        };
-        sendMessage(senderId, { attachment: audioAttachment }, pageAccessToken);
+        const audioUrl = firstTrack.preview_mp3;
+        if (audioUrl) {
+          sendMessage(senderId, { audio: audioUrl }, pageAccessToken);
+        } else {
+          sendMessage(senderId, { text: 'Sorry, no preview available for this track.' }, pageAccessToken);
+        }
       } else {
         sendMessage(senderId, { text: 'Sorry, no Spotify links found for that query.' }, pageAccessToken);
       }
