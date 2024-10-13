@@ -64,21 +64,27 @@ module.exports = {
 
 // Helper function to download the full song
 async function downloadTrack(url, cacheDir) {
-  const response = await axios({
-    url,
-    method: 'GET',
-    responseType: 'stream'
-  });
+  try {
+    console.log('Downloading track from:', url);
+    const response = await axios({
+      url,
+      method: 'GET',
+      responseType: 'stream'
+    });
 
-  const filePath = path.join(cacheDir, `${generateRandomString()}.mp3`);
-  const fileStream = fs.createWriteStream(filePath);
+    const filePath = path.join(cacheDir, `${generateRandomString()}.mp3`);
+    const fileStream = fs.createWriteStream(filePath);
 
-  response.data.pipe(fileStream);
+    response.data.pipe(fileStream);
 
-  return new Promise((resolve, reject) => {
-    fileStream.on('finish', () => resolve(filePath));
-    fileStream.on('error', reject);
-  });
+    return new Promise((resolve, reject) => {
+      fileStream.on('finish', () => resolve(filePath));
+      fileStream.on('error', reject);
+    });
+  } catch (error) {
+    console.error('Error downloading track:', error);
+    throw error;
+  }
 }
 
 // Helper function to upload the song to the platform
