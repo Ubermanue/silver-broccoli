@@ -1,65 +1,68 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+const FormData = require('form-data');
 
 module.exports = {
   name: 'spotify',
-  description: 'Get a Spotify link for a song',
+  description: 'Get a full Spotify track link for a song',
   author: 'Deku (rest api)',
-  
   async execute(senderId, args, pageAccessToken, sendMessage) {
-    // Start processing
+    const query = args.join(' ');
+
     try {
-      let songName = '';
+      // Step 1: Query the Spotify search API to find the track
+      const apiUrl = `https://www.samirxpikachu.run.place/spotifysearch?q=${encodeURIComponent(query)}`;
+      const response = await axios.get(apiUrl);
 
-      // Check if the user provided a song name
-      if (args.length === 0) {
-        throw new Error("Please provide a song name.");
+      // Step 2: Validate if the API returned any results
+      if (response.data && response.data.length > 0) {
+        const tracks = response.data;
+        const firstTrack = tracks[0];
+        const trackID = firstTrack.id;
+
+        // Step 3: Fetch the full song download link using the track ID
+        const trackApiUrl = `https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackID)}`;
+        const trackResponse = await axios.get(trackApiUrl);
+
+        const downloadLink = trackResponse.data.download_link;
+
+        if (downloadLink) {
+          // Step 4: Download the full song
+          const cacheDir = path.join(__dirname, 'cache');
+          if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir);
+          }
+          const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
+
+          // Step 5: Upload the song to the platform
+          const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
+
+          // Step 6: Send the song as a message attachment
+          sendMessage(senderId, {
+            attachment: {
+              type: 'audio',
+              payload: {
+                attachment_id: attachmentId
+              }
+            }
+          }, pageAccessToken);
+
+          console.log('Audio sent successfully.');
+        } else {
+          sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
+        }
       } else {
-        songName = args.join(" ");
+        sendMessage(senderId, { text: 'Sorry, no Spotify links found for that query.' }, pageAccessToken);
       }
-
-      // Search for the song on Spotify
-      const g = await axios.get(`https://spotify-play-iota.vercel.app/spotify?query=${encodeURIComponent(songName)}`);
-      const trackURLs = g.data.trackURLs;
-      if (!trackURLs || trackURLs.length === 0) {
-        throw new Error("No track found for the provided song name.");
-      }
-
-      // Get the first track and download it
-      const trackID = trackURLs[0];
-      const j = await axios.get(`https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackID)}`);
-      const downloadLink = j.data.download_link;
-
-      // Ensure the cache directory exists
-      const cacheDir = path.join(__dirname, "cache");
-      if (!fs.existsSync(cacheDir)) {
-        fs.mkdirSync(cacheDir);
-      }
-
-      // Download the track
-      const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
-
-      // Reply with the downloaded audio
-      sendMessage(senderId, {
-        attachment: fs.createReadStream(downloadedFilePath),
-      }, pageAccessToken);
-
-      console.log("Audio sent successfully.");
-
     } catch (error) {
-      console.error("Error occurred:", error);
-      sendMessage(senderId, { text: `An error occurred: ${error.message}` }, pageAccessToken);
+      console.error('Error retrieving Spotify link:', error);
+      sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
     }
   }
 };
 
-// Helper function to generate a random string for filenames
-function generateRandomString(length = 8) {
-  return Math.random().toString(36).substring(2, 2 + length);
-}
-
-// Function to download the track using axios
+// Helper function to download the full song
 async function downloadTrack(url, cacheDir) {
   const response = await axios({
     url,
@@ -76,4 +79,21 @@ async function downloadTrack(url, cacheDir) {
     fileStream.on('finish', () => resolve(filePath));
     fileStream.on('error', reject);
   });
+}
+
+// Helper function to upload the song to the platform
+async function uploadAudioToPlatform(filePath, pageAccessToken) {
+  const form = new FormData();
+  form.append('message', fs.createReadStream(filePath));
+
+  const response = await axios.post(`https://graph.facebook.com/v12.0/me/message_attachments?access_token=${pageAccessToken}`, form, {
+    headers: form.getHeaders()
+  });
+
+  return response.data.attachment_id;
+}
+
+// Helper function to generate a random string for filenames
+function generateRandomString(length = 8) {
+  return Math.random().toString(36).substring(2, 2 + length);
 }
