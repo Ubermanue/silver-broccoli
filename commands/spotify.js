@@ -17,9 +17,11 @@ module.exports = {
 
         const message = `🎵 *${song.title}* by ${song.artist}\n🎤 Album: ${song.artist_album}\n🗓️ Release Date: ${song.album_release_date}\n🎧 [Listen on Spotify](${song.url})`;
 
-        // Send the song information and the direct MP3 preview link
+        // Send the song information
+        sendMessage(senderId, { text: message }, pageAccessToken);
+
+        // Send the audio preview
         sendMessage(senderId, {
-          text: message,
           attachment: {
             type: 'audio',
             payload: {
