@@ -8,16 +8,18 @@ module.exports = {
     const query = args.join(' ');
 
     try {
-      const apiUrl = `https://spotify-play-iota.vercel.app/spotify?query=${encodeURIComponent(query)}`;
+      const apiUrl = `https://www.samirxpikachu.run.place/spotifysearch?q=${encodeURIComponent(query)}`;
       const response = await axios.get(apiUrl);
 
       // Check if the API call was successful and results were returned
-      if (response.data.trackURLs && response.data.trackURLs.length > 0) {
-        const trackURLs = response.data.trackURLs;
-
-        // Send the track URLs
-        const message = `Found ${trackURLs.length} tracks matching your query:\n\n` + trackURLs.map((url, index) => `${index + 1}. ${url}`).join('\n');
-        sendMessage(senderId, { text: message }, pageAccessToken);
+      if (response.data && response.data.length > 0) {
+        const tracks = response.data;
+        const firstTrack = tracks[0];
+        const audioAttachment = {
+          type: 'audio',
+          url: firstTrack.preview_mp3,
+        };
+        sendMessage(senderId, { attachment: audioAttachment }, pageAccessToken);
       } else {
         sendMessage(senderId, { text: 'Sorry, no Spotify links found for that query.' }, pageAccessToken);
       }
