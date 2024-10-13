@@ -16,11 +16,6 @@ const sbd = {
   'R': '𝐑', 'S': '𝐒', 'T': '𝐓', 'U': '𝐔', 'V': '𝐕', 'W': '𝐖', 'X': '𝐗', 'Y': '𝐘', 'Z': '𝐙',
 };
 
-// Function to apply bold font transformation
-function applyBoldFont(text) {
-  return text.split('').map(char => sbd[char] || char).join('');
-}
-
 // Function to split a message into chunks of specified length
 function splitMessageIntoChunks(text, maxLength) {
   const messages = [];
@@ -30,7 +25,17 @@ function splitMessageIntoChunks(text, maxLength) {
   return messages;
 }
 
-// Prepares the header and footer for the response message
+// Function to apply bold font transformation
+function applyBoldFont(text) {
+  return text.split('').map(char => sbd[char] || char).join('');
+}
+
+// Function to detect and transform bold text in the content
+function transformBoldContent(text) {
+  return text.replace(/\*\*(.*?)\*\*/g, (_, boldText) => applyBoldFont(boldText));
+}
+
+// Wrapping response message with header and footer
 function wrapResponseMessage(text) {
   const header = "(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒\n・──────────────・\n";
   const footer = "\n・───── >ᴗ< ──────・";
@@ -68,21 +73,15 @@ module.exports = {
       let responseMessage = '';
 
       for await (const chunk of chatCompletion) {
-        let chunkContent = chunk.choices[0]?.delta?.content || '';
-        
-        // Check if the content is bold and apply bold font transformation
-        if (chunk.choices[0]?.delta?.bold) {
-          chunkContent = applyBoldFont(chunkContent);
-        }
-
-        responseMessage += chunkContent;
+        const chunkContent = chunk.choices[0]?.delta?.content || '';
+        responseMessage += chunkContent; // Compile the complete response
 
         // Check if the current response message exceeds the max length
         if (responseMessage.length >= maxMessageLength) {
           const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
           for (const message of messages) {
-            const wrappedMessage = wrapResponseMessage(message);
-            sendMessage(senderId, { text: wrappedMessage }, pageAccessToken); // Send each chunk with header and footer
+            let transformedMessage = transformBoldContent(message);
+            sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken); // Send each chunk
           }
           responseMessage = ''; // Reset responseMessage after sending
         }
@@ -95,17 +94,16 @@ module.exports = {
       if (responseMessage) {
         userHistory.push({ role: 'assistant', content: responseMessage });
         messageHistory.set(senderId, userHistory);
-        const finalMessage = wrapResponseMessage(responseMessage);
-        sendMessage(senderId, { text: finalMessage }, pageAccessToken);
+
+        let transformedMessage = transformBoldContent(responseMessage);
+        sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
       } else {
         throw new Error("Received empty response from Groq.");
       }
 
     } catch (error) {
       console.error('Error communicating with Groq:', error.message);
-      sendMessage(senderId, {
-        text: wrapResponseMessage("An error occurred while trying to reach the API.")
-      }, pageAccessToken);
+      sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
     }
   }
 };
