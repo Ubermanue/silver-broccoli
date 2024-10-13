@@ -17,7 +17,15 @@ module.exports = {
         const firstTrack = tracks[0];
         const audioUrl = firstTrack.preview_mp3;
         if (audioUrl) {
-          sendMessage(senderId, { audio: audioUrl }, pageAccessToken);
+          sendMessage(senderId, {
+            attachment: {
+              type: 'audio',
+              payload: {
+                url: audioUrl,
+                is_reusable: true
+              }
+            }
+          }, pageAccessToken);
         } else {
           sendMessage(senderId, { text: 'Sorry, no preview available for this track.' }, pageAccessToken);
         }
