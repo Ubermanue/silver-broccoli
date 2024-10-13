@@ -8,30 +8,18 @@ module.exports = {
     const query = args.join(' ');
 
     try {
-      const apiUrl = `https://deku-rest-apis.ooguy.com/search/spotify?q=${encodeURIComponent(query)}`;
+      const apiUrl = `https://spotify-play-iota.vercel.app/spotify?query=${encodeURIComponent(query)}`;
       const response = await axios.get(apiUrl);
 
       // Check if the API call was successful and results were returned
-      if (response.data.status && response.data.result.length > 0) {
-        const song = response.data.result[0]; // Get the first song from the results
+      if (response.data.trackURLs && response.data.trackURLs.length > 0) {
+        const trackURLs = response.data.trackURLs;
 
-        const message = `🎵 *${song.title}* by ${song.artist}\n🎤 Album: ${song.artist_album}\n🗓️ Release Date: ${song.album_release_date}\n🎧 [Listen on Spotify](${song.url})`;
-
-        // Send the song information
+        // Send the track URLs
+        const message = `Found ${trackURLs.length} tracks matching your query:\n\n` + trackURLs.map((url, index) => `${index + 1}. ${url}`).join('\n');
         sendMessage(senderId, { text: message }, pageAccessToken);
-
-        // Send the audio preview
-        sendMessage(senderId, {
-          attachment: {
-            type: 'audio',
-            payload: {
-              url: song.direct_url,
-              is_reusable: true
-            }
-          }
-        }, pageAccessToken);
       } else {
-        sendMessage(senderId, { text: 'Sorry, no Spotify link found for that query.' }, pageAccessToken);
+        sendMessage(senderId, { text: 'Sorry, no Spotify links found for that query.' }, pageAccessToken);
       }
     } catch (error) {
       console.error('Error retrieving Spotify link:', error);
