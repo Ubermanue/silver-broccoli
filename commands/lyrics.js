@@ -7,12 +7,12 @@ module.exports = {
   async execute(senderId, args, pageAccessToken, sendMessage) {
     const query = args.join(' ');
     try {
-      const apiUrl = `https://deku-rest-api-3ijr.onrender.com/search/lyrics?q=${encodeURIComponent(query)}`;
+      const apiUrl = `https://lyrist.vercel.app/api/${encodeURIComponent(query)}`;
       const response = await axios.get(apiUrl);
-      const result = response.data.result;
+      const { lyrics, title, artist } = response.data;
 
-      if (result && result.lyrics) {
-        const lyricsMessage = `Title: ${result.title}\nArtist: ${result.artist}\n\n${result.lyrics}`;
+      if (lyrics) {
+        const lyricsMessage = `🎧 | Title: ${title}\n🎤 | Artist: ${artist}\n・───── >ᴗ< ──────・\n${lyrics}\n・──────────────・`;
 
         // Split the lyrics message into chunks if it exceeds 2000 characters
         const maxMessageLength = 2000;
@@ -24,25 +24,12 @@ module.exports = {
         } else {
           sendMessage(senderId, { text: lyricsMessage }, pageAccessToken);
         }
-
-        // Optionally send an image if available
-        if (result.image) {
-          sendMessage(senderId, {
-            attachment: {
-              type: 'image',
-              payload: {
-                url: result.image,
-                is_reusable: true
-              }
-            }
-          }, pageAccessToken);
-        }
       } else {
         console.error('Error: No lyrics found in the response.');
         sendMessage(senderId, { text: 'Sorry, no lyrics were found for your query.' }, pageAccessToken);
       }
     } catch (error) {
-      console.error('Error calling Lyrics API:', error);
+      console.error('Error calling Lyrics API:', error.message);
       sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
     }
   }
