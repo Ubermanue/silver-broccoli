@@ -1,15 +1,13 @@
 const axios = require('axios');
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 
-const cacheFolder = path.join(__dirname, 'cache');
+const cacheFolder = path.join(__dirname, 'commands', 'cache');
 
 // Ensure the cache folder exists
-const ensureCacheFolderExists = async () => {
-  try {
-    await fs.ensureDir(cacheFolder);
-  } catch (error) {
-    console.error('Error creating cache folder:', error);
+const ensureCacheFolderExists = () => {
+  if (!fs.existsSync(cacheFolder)) {
+    fs.mkdirSync(cacheFolder, { recursive: true });
   }
 };
 
@@ -65,7 +63,7 @@ module.exports = {
     }
 
     try {
-      await ensureCacheFolderExists();
+      ensureCacheFolderExists();
       const trackURLs = await fetchTrackURLs(query);
 
       if (!trackURLs.length) {
@@ -87,8 +85,10 @@ module.exports = {
       }, pageAccessToken);
 
       // Clean up the downloaded file after sending
-      await fs.unlink(filePath);
-      console.log("File deleted successfully.");
+      fs.unlink(filePath, (err) => {
+        if (err) console.error("Error deleting file:", err);
+        else console.log("File deleted successfully.");
+      });
     } catch (error) {
       console.error('Error processing Spotify request:', error);
       sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
