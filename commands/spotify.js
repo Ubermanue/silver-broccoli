@@ -25,9 +25,31 @@ module.exports = {
         const trackApiUrl = `https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackID)}`;
         const trackResponse = await axios.get(trackApiUrl);
 
-        const downloadLink = trackResponse.data.download_link;
+        if (trackResponse.data && trackResponse.data.download_link) {
+          const downloadLink = trackResponse.data.download_link;
+          // Step 4: Download the full song
+          const cacheDir = path.join(__dirname, 'cache');
+          if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir);
+          }
+          const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
 
-        if (downloadLink) {
+          // Step 5: Upload the song to the platform
+          const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
+
+          // Step 6: Send the song as a message attachment
+          sendMessage(senderId, {
+            attachment: {
+              type: 'audio',
+              payload: {
+                attachment_id: attachmentId
+              }
+            }
+          }, pageAccessToken);
+
+          console.log('Audio sent successfully.');
+        } else if (trackResponse.data && trackResponse.data.url) {
+          const downloadLink = trackResponse.data.url;
           // Step 4: Download the full song
           const cacheDir = path.join(__dirname, 'cache');
           if (!fs.existsSync(cacheDir)) {
@@ -50,6 +72,7 @@ module.exports = {
 
           console.log('Audio sent successfully.');
         } else {
+          console.error('Invalid response from track API:', trackResponse.data);
           sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
         }
       } else {
