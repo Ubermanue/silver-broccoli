@@ -22,20 +22,20 @@ module.exports = {
 
     try {
       // API URL for image generation
-      const apiUrl = `https://www.samirxpikachu.run.place/arcticfl?prompt=${encodeURIComponent(prompt)}`;
-      
-      const response = await axios.get(apiUrl, { responseType: 'stream' });
+      const apiUrl = `https://nash-rest-api-production.up.railway.app/generate-image?prompt=${encodeURIComponent(prompt)}&styleIndex=1`;
+
+      const response = await axios.get(apiUrl);
 
       if (response.status !== 200) {
         await sendMessage(senderId, { text: 'Error: Failed to retrieve image.' }, pageAccessToken);
         return;
       }
 
-      const formattedMessage = `Here is your generated image based on the prompt: "${prompt}"`;
+      const imageData = response.data;
+      const imageUrl = imageData.image;
 
-      // Send the formatted text and the image
-      await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
-      await sendMessage(senderId, { attachment: response.data }, pageAccessToken);
+      // Send the image
+      await sendMessage(senderId, { attachment: { url: imageUrl } }, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
