@@ -1,22 +1,17 @@
+const axios = require('axios');
+
 module.exports = {
   name: 'imagine',
   description: 'Image generator based on prompt',
   author: 'coffee',
-
-  async execute({ senderId, message, pageAccessToken, sendMessage }) {
-    if (!message) {
-      const errorMessage = 'Error: No message provided.';
-      return sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+  async execute({ senderId, args, pageAccessToken, sendMessage }) {
+    // Ensure args is defined and is an array, default to an empty string if not
+    if (!args || !Array.isArray(args) || args.length === 0) {
+      await sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
+      return;
     }
 
-    const words = message.split(' ');
-    const command = words[0];
-    const prompt = words.slice(1).join(' ');
-
-    if (!prompt) {
-      const errorMessage = 'Error: Please provide a prompt for image generation.';
-      return sendMessage(senderId, { text: errorMessage }, pageAccessToken);
-    }
+    const prompt = args.join(' ');
 
     try {
       // API URL for image generation
@@ -26,7 +21,8 @@ module.exports = {
 
       if (response.status !== 200) {
         const errorMessage = 'Error: Failed to retrieve image.';
-        return sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+        await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+        return;
       }
 
       const formattedMessage = `Here is your generated image based on the prompt: "${prompt}"`;
