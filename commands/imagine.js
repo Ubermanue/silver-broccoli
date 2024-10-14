@@ -3,8 +3,7 @@ module.exports = {
   description: 'Image generator based on prompt',
   author: 'coffee',
 
-  async execute({ senderId, message, pageAccessToken, sendMessage }) {
-    const args = message.text.trim().split(' ').slice(1);
+  async execute({ senderId, args, pageAccessToken, sendMessage }) {
     const prompt = args.join(' ');
 
     if (!prompt) {
