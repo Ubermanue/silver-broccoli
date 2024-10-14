@@ -11,93 +11,53 @@ module.exports = {
     const query = args.join(' ');
 
     try {
-      // Step 1: Query the Spotify search API to find the track
-      const apiUrl = `https://spotify-play-iota.vercel.app/spotify?query=${encodeURIComponent(query)}`;
+      // Step 1: Query the new Spotify API to find the track
+      const apiUrl = `https://deku-rest-apis.ooguy.com/search/spotify?q=${encodeURIComponent(query)}`;
       const response = await axios.get(apiUrl);
 
       // Step 2: Validate if the API returned any results
-      if (response.data && response.data.trackURLs && response.data.trackURLs.length > 0) {
-        const trackURLs = response.data.trackURLs;
-        const firstTrackURL = trackURLs[0];
+      if (response.data && response.data.result && response.data.result.length > 0) {
+        const track = response.data.result[0];  // Assuming we take the first track
 
-        // Step 3: Extract the track ID from the URL
-        const trackId = firstTrackURL.split('/').pop();
+        // Step 3: Get the track's direct preview URL
+        const downloadLink = track.direct_url;
 
-        // Step 4: Fetch the full song download link using the track ID
-        const trackApiUrl = `https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackId)}`;
-        const trackResponse = await axios.get(trackApiUrl);
-
-        if (trackResponse.data && trackResponse.data.download_link) {
-          const downloadLink = trackResponse.data.download_link;
-          if (downloadLink) {
-            // Step 5: Download the full song
-            const cacheDir = path.join(__dirname, 'cache');
-            if (!fs.existsSync(cacheDir)) {
-              fs.mkdirSync(cacheDir);
-            }
-            const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
-
-            // Step 6: Upload the song to the platform
-            const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
-
-            // Step 7: Send the song as a message attachment
-            sendMessage(senderId, {
-              attachment: {
-                type: 'audio',
-                payload: {
-                  attachment_id: attachmentId
-                }
-              }
-            }, pageAccessToken);
-
-            console.log('Audio sent successfully.');
-          } else {
-            console.error('Invalid response from track API:', trackResponse.data);
-            sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
+        if (downloadLink) {
+          // Step 4: Download the full song
+          const cacheDir = path.join(__dirname, 'cache');
+          if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir);
           }
-        } else if (trackResponse.data && trackResponse.data.url) {
-          const downloadLink = trackResponse.data.url;
-          if (downloadLink) {
-            // Step 8: Download the full song
-            const cacheDir = path.join(__dirname, 'cache');
-            if (!fs.existsSync(cacheDir)) {
-              fs.mkdirSync(cacheDir);
-            }
-            const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
+          const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
 
-            // Step 9: Upload the song to the platform
-            const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
+          // Step 5: Upload the song to the platform
+          const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
 
-            // Step 10: Send the song as a message attachment
-            sendMessage(senderId, {
-              attachment: {
-                type: 'audio',
-                payload: {
-                  attachment_id: attachmentId
-                }
+          // Step 6: Send the song as a message attachment
+          sendMessage(senderId, {
+            attachment: {
+              type: 'audio',
+              payload: {
+                attachment_id: attachmentId
               }
-            }, pageAccessToken);
+            }
+          }, pageAccessToken);
 
-            console.log('Audio sent successfully.');
-          } else {
-            console.error('Invalid response from track API:', trackResponse.data);
-            sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
-          }
+          console.log('Audio sent successfully.');
         } else {
-          console.error('Invalid response from track API:', trackResponse.data);
           sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
         }
       } else {
-        sendMessage(senderId, { text: 'Sorry, no Spotify links found for that query.' }, pageAccessToken);
+        sendMessage(senderId, { text: 'Sorry, no Spotify tracks found for that query.' }, pageAccessToken);
       }
     } catch (error) {
-      console.error('Error retrieving Spotify link:', error);
+      console.error('Error retrieving Spotify track:', error);
       sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
     }
   }
 };
 
-// Helper function to download the full song
+// Helper function to download the track
 async function downloadTrack(url, cacheDir) {
   try {
     console.log('Downloading track from:', url);
