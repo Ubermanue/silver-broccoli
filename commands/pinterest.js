@@ -35,7 +35,8 @@ module.exports = {
         attachment: { type: 'image', payload: { url } }
       }));
 
-      await sendMessage(senderId, { attachments }, pageAccessToken);
+      // Send all images in one message
+      await sendMessage(senderId, { attachment: attachments }, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
