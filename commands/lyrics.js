@@ -12,7 +12,7 @@ module.exports = {
       const { lyrics, title, artist } = response.data;
 
       if (lyrics) {
-        const lyricsMessage = `🎧 | Title: ${title}\n🎤 | Artist: ${artist}\n・──── >ᴗ< ─────・\n${lyrics}\n・────────────・`;
+        const lyricsMessage = `🎧 | Title: ${title}\n🎤 | Artist: ${artist}\n・──── >ᴗ< ─────・\n${lyrics}\n・───────────・`;
 
         // Split the lyrics message into chunks if it exceeds 2000 characters
         const maxMessageLength = 2000;
