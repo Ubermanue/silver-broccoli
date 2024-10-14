@@ -4,10 +4,11 @@ module.exports = {
   name: 'gemini',
   description: 'Ask a question to the Gemini AI',
   author: 'ChatGPT',
-  async execute(senderId, args, pageAccessToken, sendMessage) {
+  async execute(senderId, args, pageAccessToken, message) {
     const prompt = args.join(' ');
     try {
-      sendMessage(senderId, { text: '💬 | 𝙰𝚗𝚜𝚠𝚎𝚛𝚒𝚗𝚐...' }, pageAccessToken);
+      await message.reply({ text: '💬 | 𝙰𝚗𝚜𝚠𝚎𝚛𝚒𝚗𝚐...' });
+
       const response = await callGeminiAPI(prompt);
 
       // Prepare the full response with header and footer
@@ -19,15 +20,15 @@ module.exports = {
       const maxMessageLength = 2000 - header.length - footer.length; // Adjust for header/footer length
       if (fullResponse.length > 2000) {
         const messages = splitMessageIntoChunks(fullResponse, maxMessageLength);
-        for (const message of messages) {
-          sendMessage(senderId, { text: message }, pageAccessToken);
+        for (const messagePart of messages) {
+          await message.reply({ text: messagePart });
         }
       } else {
-        sendMessage(senderId, { text: fullResponse }, pageAccessToken);
+        await message.reply({ text: fullResponse });
       }
     } catch (error) {
       console.error('Error calling Gemini API:', error);
-      sendMessage(senderId, { text: '.' }, pageAccessToken);
+      await message.reply({ text: '.' });
     }
   }
 };
