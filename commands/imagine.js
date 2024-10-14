@@ -1,11 +1,10 @@
-const axios = require('axios');
-
 module.exports = {
   name: 'imagine',
   description: 'Image generator based on prompt',
   author: 'coffee',
 
-  async execute({ senderId, args, pageAccessToken, sendMessage }) {
+  async execute({ senderId, message, pageAccessToken, sendMessage }) {
+    const args = message.text.trim().split(' ').slice(1);
     const prompt = args.join(' ');
 
     if (!prompt) {
