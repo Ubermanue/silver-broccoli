@@ -34,8 +34,16 @@ module.exports = {
       const imageData = response.data;
       const imageUrl = imageData.image;
 
+      // Fetch the image using axios stream
+      const imageResponse = await axios.get(imageUrl, { responseType: 'stream' });
+
+      if (imageResponse.status !== 200) {
+        await sendMessage(senderId, { text: 'Error: Failed to retrieve image.' }, pageAccessToken);
+        return;
+      }
+
       // Send the image
-      await sendMessage(senderId, { attachment: { url: imageUrl } }, pageAccessToken);
+      await sendMessage(senderId, { attachment: imageResponse.data }, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
