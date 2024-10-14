@@ -14,9 +14,18 @@ module.exports = {
       // Use senderId for uid
       const apiUrl = `https://ajiro-rest-api.gleeze.com/api/gpt4o1?prompt=${encodeURIComponent(prompt)}&uid=${senderId}`;
       const response = await axios.get(apiUrl);
-      const { message, img_urls } = response.data;
+      let { message, img_urls } = response.data;
 
-      // If there are image URLs, send them as attachments without the message body
+      // Check if the response message contains a markdown-style image link
+      const markdownImageMatch = message.match(/!.*?(.*?)/);
+      if (markdownImageMatch) {
+        const imageUrl = markdownImageMatch[1]; // Extract the URL part of the markdown image link
+        img_urls = img_urls || []; // Ensure img_urls is defined
+        img_urls.push(imageUrl); // Add the extracted URL to img_urls
+        message = message.replace(/!.*?.*?/, '').trim(); // Remove the markdown image link from the message
+      }
+
+      // If there are image URLs, send them as attachments
       if (img_urls && img_urls.length > 0) {
         for (const imgUrl of img_urls) {
           await sendMessage(senderId, { 
@@ -26,15 +35,11 @@ module.exports = {
             } 
           }, pageAccessToken);
         }
-      } 
+      }
 
-      // If there's a message to send, clean and format it
+      // If there's a message to send, format and send it
       if (message) {
-        // Clean up the message by removing any markdown-style image links
-        const cleanMessage = message.replace(/!.*?.*?/, '').trim();
-
-        // Add header and footer to the message
-        const formattedMessage = `${header}${cleanMessage}${footer}`;
+        const formattedMessage = `${header}${message}${footer}`;
 
         // Split the response message if it exceeds 2000 characters
         const maxMessageLength = 2000;
@@ -44,10 +49,10 @@ module.exports = {
             await sendMessage(senderId, { text: msg }, pageAccessToken);
           }
         } else {
-          // Send the message
           await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
         }
       }
+
     } catch (error) {
       console.error('Error calling GPT-4 API:', error);
       const errorMessage = `${header}Error: Unexpected response format from API.${footer}`;
