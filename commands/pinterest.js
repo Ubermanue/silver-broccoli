@@ -3,9 +3,15 @@ const axios = require('axios');
 module.exports = {
   name: 'pinterest',
   description: 'Search Pinterest for images',
-  author: 'coffee',
-
+  author: 'Your Name',
   async execute({ senderId, args, pageAccessToken, sendMessage }) {
+    // Ensure args is defined and is an array, default to an empty string if not
+    if (!args || !Array.isArray(args) || args.length === 0) {
+      await sendMessage(senderId, { text: 'Please provide a search query.' }, pageAccessToken);
+      return;
+    }
+
+    // Handle the case where user provides a search query and optional number of images
     const match = args.join(' ').match(/(.+)-(\d+)$/);
     const searchQuery = match ? match[1].trim() : args.join(' ');
     let imageCount = match ? parseInt(match[2], 10) : 5;
