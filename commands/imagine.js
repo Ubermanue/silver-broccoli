@@ -6,11 +6,11 @@ const tokenPath = './token.txt';
 const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
 
 module.exports = {
-  name: 'imagine',
+  name: 'flux',
   description: 'Image generator based on prompt',
   author: 'coffee',
 
-  async execute({ senderId, args }) {
+  async execute({ senderId, args = [] }) { // Default args to an empty array
     const prompt = args.join(' ');
 
     if (!prompt) {
