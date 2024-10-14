@@ -12,32 +12,34 @@ module.exports = {
 
     try {
       // Step 1: Query the Spotify search API to find the track
-      const apiUrl = `https://www.samirxpikachu.run.place/spotifysearch?q=${encodeURIComponent(query)}`;
+      const apiUrl = `https://spotify-play-iota.vercel.app/spotify?query=${encodeURIComponent(query)}`;
       const response = await axios.get(apiUrl);
 
       // Step 2: Validate if the API returned any results
-      if (response.data && response.data.length > 0) {
-        const tracks = response.data;
-        const firstTrack = tracks[0];
-        const trackID = firstTrack.id;
+      if (response.data && response.data.trackURLs && response.data.trackURLs.length > 0) {
+        const trackURLs = response.data.trackURLs;
+        const firstTrackURL = trackURLs[0];
 
-        // Step 3: Fetch the full song download link using the track ID
-        const trackApiUrl = `https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackID)}`;
+        // Step 3: Extract the track ID from the URL
+        const trackId = firstTrackURL.split('/').pop();
+
+        // Step 4: Fetch the full song download link using the track ID
+        const trackApiUrl = `https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackId)}`;
         const trackResponse = await axios.get(trackApiUrl);
 
         if (trackResponse.data && trackResponse.data.download_link) {
           const downloadLink = trackResponse.data.download_link;
-          // Step 4: Download the full song
+          // Step 5: Download the full song
           const cacheDir = path.join(__dirname, 'cache');
           if (!fs.existsSync(cacheDir)) {
             fs.mkdirSync(cacheDir);
           }
           const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
 
-          // Step 5: Upload the song to the platform
+          // Step 6: Upload the song to the platform
           const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
 
-          // Step 6: Send the song as a message attachment
+          // Step 7: Send the song as a message attachment
           sendMessage(senderId, {
             attachment: {
               type: 'audio',
@@ -50,17 +52,17 @@ module.exports = {
           console.log('Audio sent successfully.');
         } else if (trackResponse.data && trackResponse.data.url) {
           const downloadLink = trackResponse.data.url;
-          // Step 4: Download the full song
+          // Step 5: Download the full song
           const cacheDir = path.join(__dirname, 'cache');
           if (!fs.existsSync(cacheDir)) {
             fs.mkdirSync(cacheDir);
           }
           const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
 
-          // Step 5: Upload the song to the platform
+          // Step 6: Upload the song to the platform
           const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
 
-          // Step 6: Send the song as a message attachment
+          // Step 7: Send the song as a message attachment
           sendMessage(senderId, {
             attachment: {
               type: 'audio',
