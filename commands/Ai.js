@@ -37,8 +37,8 @@ function transformBoldContent(text) {
 
 // Wrapping response message with header and footer
 function wrapResponseMessage(text) {
-  const header = "(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒\n・──────────────・\n";
-  const footer = "\n・───── >ᴗ< ──────・";
+  const header = "(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒\n・────────────・\n";
+  const footer = "\n・──── >ᴗ< ─────・";
   return `${header}${text}${footer}`;
 }
 
