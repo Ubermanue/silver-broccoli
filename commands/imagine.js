@@ -3,8 +3,15 @@ module.exports = {
   description: 'Image generator based on prompt',
   author: 'coffee',
 
-  async execute({ senderId, args, pageAccessToken, sendMessage }) {
-    const prompt = args.join(' ');
+  async execute({ senderId, message, pageAccessToken, sendMessage }) {
+    if (!message) {
+      const errorMessage = 'Error: No message provided.';
+      return sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+    }
+
+    const words = message.split(' ');
+    const command = words[0];
+    const prompt = words.slice(1).join(' ');
 
     if (!prompt) {
       const errorMessage = 'Error: Please provide a prompt for image generation.';
