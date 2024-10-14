@@ -1,4 +1,6 @@
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = {
   name: 'chatgpt',
@@ -15,7 +17,7 @@ module.exports = {
       const response = await axios.get(apiUrl);
       let { message, img_urls } = response.data;
 
-      // Check if the response message contains a markdown-style image link and extract the image URL
+      // Check if there is a markdown image and extract the image URL
       const markdownImageMatch = message.match(/!.*?(.*?)/);
       if (markdownImageMatch) {
         const imageUrl = markdownImageMatch[1]; // Extract the URL part of the markdown image link
@@ -24,15 +26,39 @@ module.exports = {
         message = message.replace(/!.*?.*?/, '').trim(); // Remove the markdown image link from the message
       }
 
-      // If there are image URLs, send them as attachments
+      // If there are image URLs, download and send them as attachments
       if (img_urls && img_urls.length > 0) {
         for (const imgUrl of img_urls) {
-          await sendMessage(senderId, { 
-            attachment: { 
-              type: 'image', 
-              payload: { url: imgUrl } 
-            } 
+          // Define the path for saving images to the cache directory
+          const imagePath = path.resolve(__dirname, 'commands/cache', `image_${Date.now()}.png`);
+          const writer = fs.createWriteStream(imagePath);
+
+          // Download the image as a stream and save it to disk
+          const imageResponse = await axios({
+            url: imgUrl,
+            method: 'GET',
+            responseType: 'stream'
+          });
+
+          // Pipe the stream to write it to disk
+          imageResponse.data.pipe(writer);
+
+          // Wait until the image has been written to disk
+          await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+          });
+
+          // Send the image file as an attachment
+          await sendMessage(senderId, {
+            attachment: {
+              type: 'image',
+              payload: { url: `file://${imagePath}` }
+            }
           }, pageAccessToken);
+
+          // Optionally delete the image file after sending (if you prefer to remove it afterward)
+          fs.unlinkSync(imagePath);
         }
       }
 
@@ -53,8 +79,8 @@ module.exports = {
       }
 
     } catch (error) {
-      console.error('Error calling GPT-4 API:', error);
-      const errorMessage = `${header}Error: Unexpected response format from API.${footer}`;
+      console.error('Error calling GPT-4 API or downloading image:', error);
+      const errorMessage = `${header}Error: Unable to process the response from API.${footer}`;
       await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
     }
   }
