@@ -43,7 +43,7 @@ module.exports = {
       }
 
       // Send the image
-      await sendMessage(senderId, { attachment: imageResponse.data }, pageAccessToken);
+      await sendMessage(senderId, { attachment: { type: 'image', payload: imageResponse.data } }, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
