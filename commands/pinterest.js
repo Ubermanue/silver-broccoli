@@ -1,10 +1,11 @@
 const axios = require('axios');
+const { sendMessage } = require('./sendMessage');
 
 module.exports = {
   name: 'pinterest',
   description: 'Search Pinterest for images',
   author: 'Your Name',
-  async execute({ senderId, args, pageAccessToken, sendMessage }) {
+  async execute({ senderId, args, pageAccessToken }) {
     // Ensure args is defined and is an array, default to an empty string if not
     if (!args || !Array.isArray(args) || args.length === 0) {
       await sendMessage(senderId, { text: 'Please provide a search query.' }, pageAccessToken);
