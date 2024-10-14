@@ -1,11 +1,15 @@
 const axios = require('axios');
+const fs = require('fs');
 const { sendMessage } = require('../handles/sendMessage');
+
+const tokenPath = './token.txt';
+const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
 
 module.exports = {
   name: 'pinterest',
   description: 'Search Pinterest for images',
   author: 'Your Name',
-  async execute({ senderId, args, pageAccessToken }) {
+  async execute(senderId, args, sendMessage) {
     // Ensure args is defined and is an array, default to an empty string if not
     if (!args || !Array.isArray(args) || args.length === 0) {
       await sendMessage(senderId, { text: 'Please provide a search query.' }, pageAccessToken);
