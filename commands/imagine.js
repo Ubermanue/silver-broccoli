@@ -1,16 +1,11 @@
 const axios = require('axios');
-const fs = require('fs');
-const { sendMessage } = require('../handles/sendMessage'); // Ensure you have the sendMessage function available
-
-const tokenPath = './token.txt';
-const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
 
 module.exports = {
   name: 'imagine',
   description: 'Image generator based on prompt',
   author: 'coffee',
 
-  async execute({ senderId, args = [] }) { // Default args to an empty array
+  async execute({ senderId, args, pageAccessToken, sendMessage }) {
     const prompt = args.join(' ');
 
     if (!prompt) {
@@ -19,8 +14,8 @@ module.exports = {
     }
 
     try {
-      // API URL for image generation with the access token if necessary
-      const apiUrl = `https://www.samirxpikachu.run.place/arcticfl?prompt=${encodeURIComponent(prompt)}&token=${pageAccessToken}`;
+      // API URL for image generation
+      const apiUrl = `https://www.samirxpikachu.run.place/arcticfl?prompt=${encodeURIComponent(prompt)}`;
       
       const response = await axios.get(apiUrl, { responseType: 'stream' });
 
