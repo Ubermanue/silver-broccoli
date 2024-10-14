@@ -6,7 +6,7 @@ const tokenPath = './token.txt';
 const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
 
 module.exports = {
-  name: 'flux',
+  name: 'imagine',
   description: 'Image generator based on prompt',
   author: 'coffee',
 
