@@ -1,4 +1,5 @@
 const { callGeminiAPI } = require('../utils/callGeminiAPI');
+
 module.exports = {
   name: 'gemini',
   description: 'Ask a question to the Gemini AI',
@@ -9,15 +10,20 @@ module.exports = {
       sendMessage(senderId, { text: '💬 | 𝙰𝚗𝚜𝚠𝚎𝚛𝚒𝚗𝚐...' }, pageAccessToken);
       const response = await callGeminiAPI(prompt);
 
+      // Prepare the full response with header and footer
+      const header = 'ᯓ★ | 𝙶𝚎𝚖𝚒𝚗𝚒\n・───────────・\n';
+      const footer = '\n・───────────・';
+      const fullResponse = `${header}${response}${footer}`;
+
       // Split the response into chunks if it exceeds 2000 characters
-      const maxMessageLength = 2000;
-      if (response.length > maxMessageLength) {
-        const messages = splitMessageIntoChunks(response, maxMessageLength);
+      const maxMessageLength = 2000 - header.length - footer.length; // Adjust for header/footer length
+      if (fullResponse.length > 2000) {
+        const messages = splitMessageIntoChunks(fullResponse, maxMessageLength);
         for (const message of messages) {
           sendMessage(senderId, { text: message }, pageAccessToken);
         }
       } else {
-        sendMessage(senderId, { text: response }, pageAccessToken);
+        sendMessage(senderId, { text: fullResponse }, pageAccessToken);
       }
     } catch (error) {
       console.error('Error calling Gemini API:', error);
