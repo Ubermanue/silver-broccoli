@@ -1,10 +1,15 @@
+const axios = require('axios');
+const fs = require('fs');
 const { sendMessage } = require('../handles/sendMessage');
+
+const tokenPath = './token.txt';
+const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
 
 module.exports = {
   name: 'imagine',
   description: 'Image generator based on prompt',
   author: 'coffee',
-  async execute({ senderId, args, pageAccessToken }) {
+  async execute({ senderId, args }) {
     // Ensure args is defined and is an array, default to an empty string if not
     if (!args || !Array.isArray(args) || args.length === 0) {
       sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
