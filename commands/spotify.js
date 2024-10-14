@@ -29,50 +29,60 @@ module.exports = {
 
         if (trackResponse.data && trackResponse.data.download_link) {
           const downloadLink = trackResponse.data.download_link;
-          // Step 5: Download the full song
-          const cacheDir = path.join(__dirname, 'cache');
-          if (!fs.existsSync(cacheDir)) {
-            fs.mkdirSync(cacheDir);
-          }
-          const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
-
-          // Step 6: Upload the song to the platform
-          const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
-
-          // Step 7: Send the song as a message attachment
-          sendMessage(senderId, {
-            attachment: {
-              type: 'audio',
-              payload: {
-                attachment_id: attachmentId
-              }
+          if (downloadLink) {
+            // Step 5: Download the full song
+            const cacheDir = path.join(__dirname, 'cache');
+            if (!fs.existsSync(cacheDir)) {
+              fs.mkdirSync(cacheDir);
             }
-          }, pageAccessToken);
+            const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
 
-          console.log('Audio sent successfully.');
+            // Step 6: Upload the song to the platform
+            const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
+
+            // Step 7: Send the song as a message attachment
+            sendMessage(senderId, {
+              attachment: {
+                type: 'audio',
+                payload: {
+                  attachment_id: attachmentId
+                }
+              }
+            }, pageAccessToken);
+
+            console.log('Audio sent successfully.');
+          } else {
+            console.error('Invalid response from track API:', trackResponse.data);
+            sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
+          }
         } else if (trackResponse.data && trackResponse.data.url) {
           const downloadLink = trackResponse.data.url;
-          // Step 5: Download the full song
-          const cacheDir = path.join(__dirname, 'cache');
-          if (!fs.existsSync(cacheDir)) {
-            fs.mkdirSync(cacheDir);
-          }
-          const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
-
-          // Step 6: Upload the song to the platform
-          const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
-
-          // Step 7: Send the song as a message attachment
-          sendMessage(senderId, {
-            attachment: {
-              type: 'audio',
-              payload: {
-                attachment_id: attachmentId
-              }
+          if (downloadLink) {
+            // Step 8: Download the full song
+            const cacheDir = path.join(__dirname, 'cache');
+            if (!fs.existsSync(cacheDir)) {
+              fs.mkdirSync(cacheDir);
             }
-          }, pageAccessToken);
+            const downloadedFilePath = await downloadTrack(downloadLink, cacheDir);
 
-          console.log('Audio sent successfully.');
+            // Step 9: Upload the song to the platform
+            const attachmentId = await uploadAudioToPlatform(downloadedFilePath, pageAccessToken);
+
+            // Step 10: Send the song as a message attachment
+            sendMessage(senderId, {
+              attachment: {
+                type: 'audio',
+                payload: {
+                  attachment_id: attachmentId
+                }
+              }
+            }, pageAccessToken);
+
+            console.log('Audio sent successfully.');
+          } else {
+            console.error('Invalid response from track API:', trackResponse.data);
+            sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
+          }
         } else {
           console.error('Invalid response from track API:', trackResponse.data);
           sendMessage(senderId, { text: 'Sorry, no full song available for this track.' }, pageAccessToken);
