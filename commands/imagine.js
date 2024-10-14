@@ -9,10 +9,12 @@ module.exports = {
   name: 'imagine',
   description: 'Image generator based on prompt',
   author: 'coffee',
-  async execute({ senderId, args }) {
+  async execute(senderId, args) {
+    console.log('Sender ID:', senderId);
+
     // Ensure args is defined and is an array, default to an empty string if not
     if (!args || !Array.isArray(args) || args.length === 0) {
-      sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
       return;
     }
 
@@ -25,21 +27,19 @@ module.exports = {
       const response = await axios.get(apiUrl, { responseType: 'stream' });
 
       if (response.status !== 200) {
-        const errorMessage = 'Error: Failed to retrieve image.';
-        sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+        await sendMessage(senderId, { text: 'Error: Failed to retrieve image.' }, pageAccessToken);
         return;
       }
 
       const formattedMessage = `Here is your generated image based on the prompt: "${prompt}"`;
 
       // Send the formatted text and the image
-      sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
-      sendMessage(senderId, { attachment: response.data }, pageAccessToken);
+      await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
+      await sendMessage(senderId, { attachment: response.data }, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = `Error: Failed to retrieve image. ${error.message}`;
-      sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
     }
   }
 };
