@@ -35,13 +35,14 @@ module.exports = {
         return;
       }
 
-      // Send all images as attachments in one message
-      const attachments = selectedImages.map(url => ({
-        attachment: { type: 'image', payload: { url } }
-      }));
-
-      // Send all images in one message
-      await sendMessage(senderId, { attachment: attachments }, pageAccessToken);
+      // Send each image in a separate message
+      for (const url of selectedImages) {
+        const attachment = {
+          type: 'image',
+          payload: { url }
+        };
+        await sendMessage(senderId, { attachment }, pageAccessToken);
+      }
 
     } catch (error) {
       console.error('Error:', error);
