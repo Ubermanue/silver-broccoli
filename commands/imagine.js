@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const { sendMessage } = require('../handles/sendMessage');
+const { PassThrough } = require('stream');
 
 const tokenPath = './token.txt';
 const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
@@ -42,8 +43,14 @@ module.exports = {
         return;
       }
 
+      // Create a buffer to store the image
+      const buffer = new PassThrough();
+
+      // Pipe the image stream to the buffer
+      imageResponse.data.pipe(buffer);
+
       // Send the image
-      await sendMessage(senderId, { attachment: { type: 'image', payload: imageResponse.data } }, pageAccessToken);
+      await sendMessage(senderId, { attachment: { type: 'image', payload: buffer } }, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
