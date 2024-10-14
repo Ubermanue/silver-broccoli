@@ -5,16 +5,13 @@ module.exports = {
   description: 'Search Pinterest for images',
   author: 'coffee',
 
-
   async execute({ senderId, args, pageAccessToken, sendMessage }) {
-    const input = args.join(' ');
-    const match = input.match(/(.+)-(\d+)$/);
-    const searchQuery = match ? match[1].trim() : input;
+    const match = args.join(' ').match(/(.+)-(\d+)$/);
+    const searchQuery = match ? match[1].trim() : args.join(' ');
     let imageCount = match ? parseInt(match[2], 10) : 5;
 
     // Ensure the user-requested count is within 1 to 20
-    if (isNaN(imageCount) || imageCount < 1) imageCount = 1;
-    if (imageCount > 20) imageCount = 20;
+    imageCount = Math.max(1, Math.min(imageCount, 20));
 
     try {
       const { data } = await axios.get(`https://hiroshi-api.onrender.com/image/pinterest?search=${encodeURIComponent(searchQuery)}`);
@@ -23,12 +20,11 @@ module.exports = {
       const selectedImages = data.data.slice(0, imageCount);
 
       if (selectedImages.length === 0) {
-        const noImagesMessage = `No images found for "${searchQuery}".`;
-        await sendMessage(senderId, { text: noImagesMessage }, pageAccessToken);
+        await sendMessage(senderId, { text: `No images found for "${searchQuery}".` }, pageAccessToken);
         return;
       }
 
-      // Build the message with all images as attachments in one message
+      // Send all images as attachments in one message
       const attachments = selectedImages.map(url => ({
         attachment: { type: 'image', payload: { url } }
       }));
@@ -37,8 +33,7 @@ module.exports = {
 
     } catch (error) {
       console.error('Error:', error);
-      const errorMessage = `Error: Could not fetch images.`;
-      await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Error: Could not fetch images.' }, pageAccessToken);
     }
   }
 };
