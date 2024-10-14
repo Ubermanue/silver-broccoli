@@ -7,13 +7,12 @@ module.exports = {
   async execute(senderId, args, pageAccessToken, sendMessage) {
     const prompt = args.join(' ');
     try {
-      sendMessage(senderId, { text: '💬 | 𝙰𝚗𝚜𝚠𝚎𝚛𝚒𝚗𝚐...' }, pageAccessToken);
       const response = await callGeminiAPI(prompt);
 
-      // Prepare the full response with header and footer
+      // Prepare the full response with header and footer, and trim any extra spaces
       const header = 'ᯓ★ | 𝙶𝚎𝚖𝚒𝚗𝚒\n・───────────・\n';
       const footer = '\n・───────────・';
-      const fullResponse = `${header}${response}${footer}`;
+      const fullResponse = `${header}${response.trim()}${footer}`;
 
       // Split the response into chunks if it exceeds 2000 characters
       const maxMessageLength = 2000 - header.length - footer.length; // Adjust for header/footer length
