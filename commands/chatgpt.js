@@ -3,8 +3,7 @@ const axios = require('axios');
 module.exports = {
   name: 'chatgpt',
   description: 'Ask a question to GPT-4',
-  author: 'coffee',
-
+  author: 'Deku (rest api)',
   async execute(senderId, args, pageAccessToken, sendMessage) {
     const prompt = args.join(' ');
     const header = 'ᝰ.ᐟ | 𝙲𝚑𝚊𝚝𝙶𝙿𝚃\n・───────────・\n';
@@ -16,7 +15,7 @@ module.exports = {
       const response = await axios.get(apiUrl);
       let { message, img_urls } = response.data;
 
-      // Check if the response message contains a markdown-style image link
+      // Check if the response message contains a markdown-style image link and extract the image URL
       const markdownImageMatch = message.match(/!.*?(.*?)/);
       if (markdownImageMatch) {
         const imageUrl = markdownImageMatch[1]; // Extract the URL part of the markdown image link
@@ -37,7 +36,7 @@ module.exports = {
         }
       }
 
-      // If there's a message to send, format and send it
+      // If there's a cleaned-up message to send, format and send it
       if (message) {
         const formattedMessage = `${header}${message}${footer}`;
 
