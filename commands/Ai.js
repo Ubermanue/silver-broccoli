@@ -1,3 +1,4 @@
+const axios = require('axios'); 
 const Groq = require('groq-sdk');
 
 const groq = new Groq({ apiKey: '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' });
@@ -54,58 +55,70 @@ module.exports = {
       // Send an empty message to indicate processing
       sendMessage(senderId, { text: '' }, pageAccessToken);
 
-      let userHistory = messageHistory.get(senderId) || [];
-      if (userHistory.length === 0) {
-        userHistory.push({ 
-          role: 'system', 
-          content: 'Your name is Mocha AI. You can answer any questions asked.' 
-        });
-      }
-      userHistory.push({ role: 'user', content: messageText });
-
-      const chatCompletion = await groq.chat.completions.create({
-        messages: userHistory,
-        model: 'llama3-8b-8192',
-        temperature: 1,
-        max_tokens: 1025,
-        top_p: 1,
-        stream: true,
-        stop: null
-      });
-
       let responseMessage = '';
 
-      for await (const chunk of chatCompletion) {
-        const chunkContent = chunk.choices[0]?.delta?.content || '';
-        responseMessage += chunkContent; // Compile the complete response
+      if (messageText.startsWith('ai')) {
+        // Handle the message using the new API if it starts with 'ai'
+        const aiQuery = messageText.slice(2).trim(); // Remove 'ai' prefix and trim the text
+        const apiUrl = `https://nash-rest-api-production.up.railway.app/Mixtral?userId=${senderId}&message=${encodeURIComponent(aiQuery)}`;
+        
+        const apiResponse = await axios.get(apiUrl); // Call the new API using axios
+        responseMessage = apiResponse.data.response; // Use the 'response' field from the API response
 
-        // Check if the current response message exceeds the max length
-        if (responseMessage.length >= maxMessageLength) {
-          const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
-          for (const message of messages) {
-            let transformedMessage = transformBoldContent(message);
-            sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken); // Send each chunk
+      } else {
+        // Use the Groq API for other messages
+        let userHistory = messageHistory.get(senderId) || [];
+        if (userHistory.length === 0) {
+          userHistory.push({ 
+            role: 'system', 
+            content: 'Your name is Mocha AI. You can answer any questions asked.' 
+          });
+        }
+        userHistory.push({ role: 'user', content: messageText });
+
+        const chatCompletion = await groq.chat.completions.create({
+          messages: userHistory,
+          model: 'llama3-8b-8192',
+          temperature: 1,
+          max_tokens: 1025,
+          top_p: 1,
+          stream: true,
+          stop: null
+        });
+
+        for await (const chunk of chatCompletion) {
+          const chunkContent = chunk.choices[0]?.delta?.content || '';
+          responseMessage += chunkContent;
+
+          if (responseMessage.length >= maxMessageLength) {
+            const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
+            for (const message of messages) {
+              let transformedMessage = transformBoldContent(message);
+              sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
+            }
+            responseMessage = '';
           }
-          responseMessage = ''; // Reset responseMessage after sending
+        }
+
+        // Log the raw response from the API
+        console.log("Raw API Response:", responseMessage);
+
+        // Update user history
+        if (responseMessage) {
+          userHistory.push({ role: 'assistant', content: responseMessage });
+          messageHistory.set(senderId, userHistory);
+        } else {
+          throw new Error("Received empty response from Groq.");
         }
       }
 
-      // Log the raw response from the API
-      console.log("Raw API Response:", responseMessage);
-
-      // Send any remaining part of the response
+      // Send the final response
       if (responseMessage) {
-        userHistory.push({ role: 'assistant', content: responseMessage });
-        messageHistory.set(senderId, userHistory);
-
         let transformedMessage = transformBoldContent(responseMessage);
         sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
-      } else {
-        throw new Error("Received empty response from Groq.");
       }
-
     } catch (error) {
-      console.error('Error communicating with Groq:', error.message);
+      console.error('Error communicating with the API:', error.message);
       sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
     }
   }
