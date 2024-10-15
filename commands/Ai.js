@@ -101,24 +101,21 @@ module.exports = {
     try {
       console.log("User Message:", messageText);
 
-      // Send an empty message to indicate processing
-      sendMessage(senderId, { text: '' }, pageAccessToken);
-
       const userHistory = messageHistory.get(senderId) || [];
       if (userHistory.length === 0) {
         userHistory.push({ role: 'system', content: 'Your name is Mocha AI. You can answer any questions asked.' });
       }
       userHistory.push({ role: 'user', content: Array.isArray(messageText) ? messageText[0] : messageText });
 
-const chatCompletion = await groq.chat.completions.create({
-  messages: userHistory,
-  model: 'llama3-8b-8192',
-  temperature: 1,
-  max_tokens: 1025,
-  top_p: 1,
-  stream: true,
-  stop: null
-});
+      const chatCompletion = await groq.chat.completions.create({
+        messages: userHistory,
+        model: 'llama3-8b-8192',
+        temperature: 1,
+        max_tokens: 1025,
+        top_p: 1,
+        stream: true,
+        stop: null
+      });
 
 let responseMessage = '';
 
