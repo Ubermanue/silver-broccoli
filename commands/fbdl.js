@@ -3,7 +3,7 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'fbdl',
-  description: 'Fetch a video from a Facebook Reel',
+  description: 'Downloads a video through a Facebook video link',
   author: 'coffee',
   async execute(senderId, args, pageAccessToken) {
     if (!args || !Array.isArray(args) || args.length === 0) {
