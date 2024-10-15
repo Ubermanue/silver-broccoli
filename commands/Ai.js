@@ -57,93 +57,83 @@ module.exports = {
 
       let responseMessage = '';
 
-      if (messageText.startsWith('ai')) {
-        // Handle the message using the new API if it starts with 'ai'
-        const prompt = messageText.slice(2).trim(); // Remove 'ai' prefix and trim the text
-        const apiUrl = `https://nash-rest-api-production.up.railway.app/Mixtral?userId=${senderId}&message=${encodeURIComponent(prompt)}`;
-        
-        try {
-          const apiResponse = await axios.get(apiUrl); // Call the new API using axios
-          const responseMessage = apiResponse.data.response; // Use the 'response' field from the API response
+      const apiUrl = `https://nash-rest-api-production.up.railway.app/Mixtral?userId=1&message=${encodeURIComponent(messageText)}`;
+      
+      try {
+        const apiResponse = await axios.get(apiUrl); // Call the new API using axios
+        const responseMessage = apiResponse.data.response; // Use the 'response' field from the API response
 
-          // Clean up the message by removing any unwanted markdown-style image links
-          const cleanMessage = responseMessage.replace(/!.*?.*?/, '').trim();
+        // Clean up the message by removing any unwanted markdown-style image links
+        const cleanMessage = responseMessage.replace(/!.*?.*?/, '').trim();
 
-          // Add header and footer to the cleaned-up message
-          const header = "(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒\n・───────────・\n";
-          const footer = "\n・──── >ᴗ< ─────・";
-          const formattedMessage = `${header}${cleanMessage}${footer}`;
+        // Add header and footer to the cleaned-up message
+        const header = "(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒\n・───────────・\n";
+        const footer = "\n・──── >ᴗ< ─────・";
+        const formattedMessage = `${header}${cleanMessage}${footer}`;
 
-          // Send the message if it's under the character limit, otherwise split it
-          const maxMessageLength = 2000;
-          if (cleanMessage.length > maxMessageLength) {
-            const messages = splitMessageIntoChunks(formattedMessage, maxMessageLength);
-            for (const msg of messages) {
-              await sendMessage(senderId, { text: msg }, pageAccessToken);
-            }
-          } else {
-            await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
+        // Send the message if it's under the character limit, otherwise split it
+        const maxMessageLength = 2000;
+        if (cleanMessage.length > maxMessageLength) {
+          const messages = splitMessageIntoChunks(formattedMessage, maxMessageLength);
+          for (const msg of messages) {
+            await sendMessage(senderId, { text: msg }, pageAccessToken);
           }
-        } catch (error) {
-          console.error('Error calling new API:', error);
-          const errorMessage = `${header}Error: Unexpected response format from API.${footer}`;
-          await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
-        }
-      } else {
-        // Use the Groq API for other messages
-        let userHistory = messageHistory.get(senderId) || [];
-        if (userHistory.length === 0) {
-          userHistory.push({ 
-            role: 'system', 
-            content: 'Your name is Mocha AI. You can answer any questions asked.' 
-          });
-        }
-        userHistory.push({ role: 'user', content: messageText });
-
-        const chatCompletion = await groq.chat.completions.create({
-          messages: userHistory,
-          model: 'llama3-8b-8192',
-          temperature: 1,
-          max_tokens: 1025,
-          top_p: 1,
-          stream: true,
-          stop: null
-        });
-
-        for await (const chunk of chatCompletion) {
-          const chunkContent = chunk.choices[0]?.delta?.content || '';
-          responseMessage += chunkContent;
-
-          if (responseMessage.length >= maxMessageLength) {
-            const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
-            for (const message of messages) {
-              let transformedMessage = transformBoldContent(message);
-              await sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
-            }
-            responseMessage = '';
-          }
-        }
-
-        // Log the raw response from the API
-        console.log("Raw API Response:", responseMessage);
-
-        // Update user history
-        if (responseMessage) {
-          userHistory.push({ role: 'assistant', content: responseMessage });
-          messageHistory.set(senderId, userHistory);
         } else {
-          throw new Error("Received empty response from Groq.");
+          await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
+        }
+      } catch (error) {
+        console.error('Error calling new API:', error);
+        const errorMessage = `${header}Error: Unexpected response format from API.${footer}`;
+        await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+      }
+    } else {
+      // Use the Groq API for other messages
+      let userHistory = messageHistory.get(senderId) || [];
+      if (userHistory.length === 0) {
+        userHistory.push({ 
+          role: 'system', 
+          content: 'Your name is Mocha AI. You can answer any questions asked.' 
+        });
+      }
+      userHistory.push({ role: 'user', content: messageText });
+
+      const chatCompletion = await groq.chat.completions.create({
+        messages: userHistory,
+        model: 'llama3-8b-8192',
+        temperature: 1,
+        max_tokens: 1025,
+        top_p: 1,
+        stream: true,
+        stop: null
+      });
+
+      for await (const chunk of chatCompletion) {
+        const chunkContent = chunk.choices[0]?.delta?.content || '';
+        responseMessage += chunkContent;
+
+        if (responseMessage.length >= maxMessageLength) {
+          const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
+          for (const message of messages) {
+            let transformedMessage = transformBoldContent(message);
+            await sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
+          }
+          responseMessage = '';
         }
       }
 
-      // Send the final response
+      // Log the raw response from the API
+      console.log("Raw API Response:", responseMessage);
+
+      // Update user history
       if (responseMessage) {
-        let transformedMessage = transformBoldContent(responseMessage);
-        await sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
+        userHistory.push({ role: 'assistant', content: responseMessage });
+        messageHistory.set(senderId, userHistory);
+      } else {
+        throw new Error("Received empty response from Groq.");
       }
-    } catch (error) {
-      console.error('Error communicating with the API:', error.message);
-      await sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
     }
+  } catch (error) {
+    console.error('Error communicating with the API:', error.message);
+    await sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
   }
-};
+}
