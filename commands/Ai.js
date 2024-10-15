@@ -92,12 +92,22 @@ const wrapResponseMessage = (text) => {
   return `${header}${text}${footer}`;
 };
 
+const processImage = async (imageUrl) => {
+  try {
+    const imageAnalysis = await groq.vision.analyze({ url: imageUrl });
+    return imageAnalysis.description || "No description available.";
+  } catch (error) {
+    console.error('Error analyzing image:', error.message);
+    return "Sorry, I couldn't analyze the image.";
+  }
+};
+
 module.exports = {
   name: 'ai',
   description: 'response within seconds',
   author: 'Nics',
 
-  async execute(senderId, messageText, pageAccessToken, sendMessage) {
+  async execute(senderId, messageText, pageAccessToken, sendMessage, imageUrl) {
     try {
       console.log("User Message:", messageText);
 
@@ -105,6 +115,15 @@ module.exports = {
       if (userHistory.length === 0) {
         userHistory.push({ role: 'system', content: 'Your name is Mocha AI. You can answer any questions asked.' });
       }
+
+      // Handle image input
+      if (imageUrl) {
+        const imageDescription = await processImage(imageUrl);
+        sendMessage(senderId, { text: wrapResponseMessage(imageDescription) }, pageAccessToken);
+        return; // Exit after handling image
+      }
+
+      // Handle text input
       userHistory.push({ role: 'user', content: Array.isArray(messageText) ? messageText[0] : messageText });
 
       const chatCompletion = await groq.chat.completions.create({
@@ -117,39 +136,38 @@ module.exports = {
         stop: null
       });
 
-let responseMessage = '';
+      let responseMessage = '';
 
-for await (const chunk of chatCompletion) {
-  const chunkContent = chunk.choices[0]?.delta?.content || '';
-  responseMessage += chunkContent;
+      for await (const chunk of chatCompletion) {
+        const chunkContent = chunk.choices[0]?.delta?.content || '';
+        responseMessage += chunkContent;
 
-  if (responseMessage.length >= maxMessageLength) {
-    const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
-    for (const message of messages) {
-      let transformedMessage = transformBoldContent(message);
-      // Check if the transformed message is not empty
-      if (transformedMessage.trim().length > 0) {
-        sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
+        if (responseMessage.length >= maxMessageLength) {
+          const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
+          for (const message of messages) {
+            let transformedMessage = transformBoldContent(message);
+            if (transformedMessage.trim().length > 0) {
+              sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
+            }
+          }
+          responseMessage = '';
+        }
       }
+
+      // Send any remaining part of the response
+      if (responseMessage.trim()) {
+        userHistory.push({ role: 'assistant', content: responseMessage });
+        messageHistory.set(senderId, userHistory);
+
+        let transformedMessage = transformBoldContent(responseMessage);
+        sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
+      } else {
+        throw new Error("Received empty response from Groq.");
+      }
+
+    } catch (error) {
+      console.error('Error communicating with Groq:', error.message);
+      sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
     }
-    responseMessage = '';
   }
-}
-
-// Send any remaining part of the response
-if (responseMessage.trim()) {
-  userHistory.push({ role: 'assistant', content: responseMessage });
-  messageHistory.set(senderId, userHistory);
-
-  let transformedMessage = transformBoldContent(responseMessage);
-  sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
-} else {
-  throw new Error("Received empty response from Groq.");
-}
-
-} catch (error) {
-  console.error('Error communicating with Groq:', error.message);
-  sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
-}
-}
 };
