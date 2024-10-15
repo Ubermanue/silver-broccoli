@@ -108,7 +108,7 @@ module.exports = {
       if (userHistory.length === 0) {
         userHistory.push({ role: 'system', content: 'Your name is Mocha AI. You can answer any questions asked.' });
       }
-      userHistory.push({ role: 'user', content: messageText });
+      userHistory.push({ role: 'user', content: Array.isArray(messageText) ? messageText[0] : messageText });
 
 const chatCompletion = await groq.chat.completions.create({
   messages: userHistory,
