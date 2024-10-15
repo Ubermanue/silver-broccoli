@@ -51,35 +51,6 @@ module.exports = {
     try {
       console.log("User Message:", messageText);
 
-      // Check for command format (e.g., "ai hello")
-      const commandMatch = messageText.match(/^ai\s+(.+)$/);
-      let command = null;
-
-      if (commandMatch) {
-        command = commandMatch[1].trim();
-      } else {
-        command = messageText.trim();
-      }
-
-      let responseMessage;
-
-      // Handle specific commands
-      switch (command.toLowerCase()) {
-        case 'hello':
-          responseMessage = "Hello! How can I assist you today?";
-          break;
-        // Add more commands here as needed
-        default:
-          // If not a command, treat it as a normal chat message
-          responseMessage = null; // Default response will be handled below
-      }
-
-      // If a command response was generated, send it and exit
-      if (responseMessage) {
-        sendMessage(senderId, { text: wrapResponseMessage(transformBoldContent(responseMessage)) }, pageAccessToken);
-        return;
-      }
-
       // Send an empty message to indicate processing
       sendMessage(senderId, { text: '' }, pageAccessToken);
 
@@ -102,32 +73,32 @@ module.exports = {
         stop: null
       });
 
-      let chatResponseMessage = '';
+      let responseMessage = '';
 
       for await (const chunk of chatCompletion) {
         const chunkContent = chunk.choices[0]?.delta?.content || '';
-        chatResponseMessage += chunkContent; // Compile the complete response
+        responseMessage += chunkContent; // Compile the complete response
 
         // Check if the current response message exceeds the max length
-        if (chatResponseMessage.length >= maxMessageLength) {
-          const messages = splitMessageIntoChunks(chatResponseMessage, maxMessageLength);
+        if (responseMessage.length >= maxMessageLength) {
+          const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
           for (const message of messages) {
             let transformedMessage = transformBoldContent(message);
             sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken); // Send each chunk
           }
-          chatResponseMessage = ''; // Reset chatResponseMessage after sending
+          responseMessage = ''; // Reset responseMessage after sending
         }
       }
 
       // Log the raw response from the API
-      console.log("Raw API Response:", chatResponseMessage);
+      console.log("Raw API Response:", responseMessage);
 
       // Send any remaining part of the response
-      if (chatResponseMessage) {
-        userHistory.push({ role: 'assistant', content: chatResponseMessage });
+      if (responseMessage) {
+        userHistory.push({ role: 'assistant', content: responseMessage });
         messageHistory.set(senderId, userHistory);
 
-        let transformedMessage = transformBoldContent(chatResponseMessage);
+        let transformedMessage = transformBoldContent(responseMessage);
         sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
       } else {
         throw new Error("Received empty response from Groq.");
