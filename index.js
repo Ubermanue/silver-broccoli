@@ -72,7 +72,7 @@ const loadCommands = () => {
 // Load Messenger Menu Commands dynamically from command files
 const loadMenuCommands = async () => {
   const commands = loadCommands();
-  
+
   try {
     const loadCmd = await axios.post(`https://graph.facebook.com/v21.0/me/messenger_profile?access_token=${PAGE_ACCESS_TOKEN}`, {
       commands: [
@@ -92,6 +92,32 @@ const loadMenuCommands = async () => {
     console.error("Error loading menu commands:", error);
   }
 };
+
+// Function to reload menu commands
+const reloadMenuCommands = async () => {
+  try {
+    const response = await axios.delete(`https://graph.facebook.com/v21.0/me/messenger_profile?access_token=${PAGE_ACCESS_TOKEN}&fields=commands`, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    console.log("Menu commands deleted successfully.");
+
+    await loadMenuCommands();
+  } catch (error) {
+    console.error("Error reloading menu commands:", error);
+  }
+};
+
+// Watch for changes in the commands directory
+fs.watch(COMMANDS_PATH, (eventType, filename) => {
+  if (eventType === 'change' || eventType === 'rename') {
+    if (filename.endsWith('.js')) {
+      reloadMenuCommands();
+    }
+  }
+});
 
 // Server initialization
 const PORT = process.env.PORT || 3000;
