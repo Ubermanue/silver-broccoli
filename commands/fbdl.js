@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { sendMessage } = require('./sendMessage'); // Adjust the path as needed
+const { sendMessage } = require('./handles/sendMessage'); // Adjusted path based on provided link
 
 module.exports = {
   name: 'fbdl',
