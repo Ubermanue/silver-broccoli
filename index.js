@@ -50,7 +50,7 @@ app.post('/webhook', (req, res) => {
   }
 });
 
-// Load all command files from the "commands" directory
+// Load all command files from the "commands" directory and add a hyphen to the name
 const loadCommands = () => {
   const commands = [];
 
@@ -60,7 +60,7 @@ const loadCommands = () => {
     const command = require(path.join(COMMANDS_PATH, file));
     if (command.name && command.description) {
       commands.push({
-        name: command.name,
+        name: `-${command.name}`, // Adding a hyphen (-) before the command name
         description: command.description
       });
     }
