@@ -16,14 +16,7 @@ module.exports = {
     try {
       const apiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/generate-art?prompt=${encodeURIComponent(prompt)}`;
 
-      const response = await axios.get(apiUrl, { responseType: 'stream' });
-
-      if (response.status !== 200) {
-        await sendMessage(senderId, { text: 'Error: Failed to retrieve image.' }, pageAccessToken);
-        return;
-      }
-
-      await sendMessage(senderId, { attachment: response.data }, pageAccessToken);
+      await sendMessage(senderId, { attachment: { type: 'image', payload: { url: apiUrl } } }, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
