@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { sendMessage } = require('./handles/sendMessage'); // Adjusted path based on provided link
+const request = require('request'); // Add request to send message
 
 module.exports = {
   name: 'fbdl',
@@ -14,7 +14,15 @@ module.exports = {
       // Check if the URL is provided
       if (!url) {
         // Send an error message if the URL is missing
-        await sendMessage(senderId, { text: 'Error: Missing URL!' }, pageAccessToken);
+        request({
+          url: 'https://graph.facebook.com/v13.0/me/messages',
+          qs: { access_token: pageAccessToken },
+          method: 'POST',
+          json: {
+            recipient: { id: senderId },
+            message: { text: 'Error: Missing URL!' },
+          },
+        });
         return;
       }
 
@@ -35,15 +43,39 @@ module.exports = {
         };
 
         // Send the video attachment directly
-        await sendMessage(senderId, { attachment }, pageAccessToken);
+        request({
+          url: 'https://graph.facebook.com/v13.0/me/messages',
+          qs: { access_token: pageAccessToken },
+          method: 'POST',
+          json: {
+            recipient: { id: senderId },
+            message: { attachment },
+          },
+        });
       } else {
         // Send an error message if the video could not be fetched
-        await sendMessage(senderId, { text: 'Error: Unable to fetch video. Please try again later.' }, pageAccessToken);
+        request({
+          url: 'https://graph.facebook.com/v13.0/me/messages',
+          qs: { access_token: pageAccessToken },
+          method: 'POST',
+          json: {
+            recipient: { id: senderId },
+            message: { text: 'Error: Unable to fetch video. Please try again later.' },
+          },
+        });
       }
     } catch (error) {
       console.error('Error:', error);
       // Send an error message for unexpected errors
-      await sendMessage(senderId, { text: 'Error: Unexpected error occurred.' }, pageAccessToken);
+      request({
+        url: 'https://graph.facebook.com/v13.0/me/messages',
+        qs: { access_token: pageAccessToken },
+        method: 'POST',
+        json: {
+          recipient: { id: senderId },
+          message: { text: 'Error: Unexpected error occurred.' },
+        },
+      });
     }
   }
 };
