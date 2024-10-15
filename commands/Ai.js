@@ -1,4 +1,3 @@
-const axios = require('axios'); // Make sure to include axios for HTTP requests
 const Groq = require('groq-sdk');
 
 const groq = new Groq({ apiKey: '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' });
@@ -55,39 +54,6 @@ module.exports = {
       // Send an empty message to indicate processing
       sendMessage(senderId, { text: '' }, pageAccessToken);
 
-      let responseMessage = '';
-
-      const apiUrl = `https://nash-rest-api-production.up.railway.app/Mixtral?userId=1&message=${encodeURIComponent(messageText)}`;
-      
-      try {
-        const apiResponse = await axios.get(apiUrl); // Call the new API using axios
-        const responseMessage = apiResponse.data.response; // Use the 'response' field from the API response
-
-        // Clean up the message by removing any unwanted markdown-style image links
-        const cleanMessage = responseMessage.replace(/!.*?.*?/, '').trim();
-
-        // Add header and footer to the cleaned-up message
-        const header = "(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒\n・───────────・\n";
-        const footer = "\n・──── >ᴗ< ─────・";
-        const formattedMessage = `${header}${cleanMessage}${footer}`;
-
-        // Send the message if it's under the character limit, otherwise split it
-        const maxMessageLength = 2000;
-        if (cleanMessage.length > maxMessageLength) {
-          const messages = splitMessageIntoChunks(formattedMessage, maxMessageLength);
-          for (const msg of messages) {
-            await sendMessage(senderId, { text: msg }, pageAccessToken);
-          }
-        } else {
-          await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
-        }
-      } catch (error) {
-        console.error('Error calling new API:', error);
-        const errorMessage = `${header}Error: Unexpected response format from API.${footer}`;
-        await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
-      }
-    } else {
-      // Use the Groq API for other messages
       let userHistory = messageHistory.get(senderId) || [];
       if (userHistory.length === 0) {
         userHistory.push({ 
@@ -107,33 +73,40 @@ module.exports = {
         stop: null
       });
 
+      let responseMessage = '';
+
       for await (const chunk of chatCompletion) {
         const chunkContent = chunk.choices[0]?.delta?.content || '';
-        responseMessage += chunkContent;
+        responseMessage += chunkContent; // Compile the complete response
 
+        // Check if the current response message exceeds the max length
         if (responseMessage.length >= maxMessageLength) {
           const messages = splitMessageIntoChunks(responseMessage, maxMessageLength);
           for (const message of messages) {
             let transformedMessage = transformBoldContent(message);
-            await sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
+            sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken); // Send each chunk
           }
-          responseMessage = '';
+          responseMessage = ''; // Reset responseMessage after sending
         }
       }
 
       // Log the raw response from the API
       console.log("Raw API Response:", responseMessage);
 
-      // Update user history
+      // Send any remaining part of the response
       if (responseMessage) {
         userHistory.push({ role: 'assistant', content: responseMessage });
         messageHistory.set(senderId, userHistory);
+
+        let transformedMessage = transformBoldContent(responseMessage);
+        sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
       } else {
         throw new Error("Received empty response from Groq.");
       }
+
+    } catch (error) {
+      console.error('Error communicating with Groq:', error.message);
+      sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
     }
-  } catch (error) {
-    console.error('Error communicating with the API:', error.message);
-    await sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
   }
-}
+};
