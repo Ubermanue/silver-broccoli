@@ -1,28 +1,17 @@
 const axios = require('axios');
-const request = require('request'); // Add request to send message
 
 module.exports = {
   name: 'fbdl',
   description: 'Fetch a video from a Facebook Reel',
   author: 'coffee',
 
-  async execute({ senderId, args, pageAccessToken }) {
-    // Join the arguments to form the complete URL
+  async execute({ senderId, args, pageAccessToken, sendMessage }) {
     const url = args.join(' ');
 
     try {
       // Check if the URL is provided
       if (!url) {
-        // Send an error message if the URL is missing
-        request({
-          url: 'https://graph.facebook.com/v13.0/me/messages',
-          qs: { access_token: pageAccessToken },
-          method: 'POST',
-          json: {
-            recipient: { id: senderId },
-            message: { text: 'Error: Missing URL!' },
-          },
-        });
+        await sendMessage(senderId, { text: 'Error: Missing URL!' }, pageAccessToken);
         return;
       }
 
@@ -34,7 +23,7 @@ module.exports = {
       if (response.data && response.data.result) {
         const videoUrl = response.data.result;
 
-        // Prepare the attachment payload
+        // Prepare the video attachment
         const attachment = {
           type: 'video',
           payload: {
@@ -43,39 +32,15 @@ module.exports = {
         };
 
         // Send the video attachment directly
-        request({
-          url: 'https://graph.facebook.com/v13.0/me/messages',
-          qs: { access_token: pageAccessToken },
-          method: 'POST',
-          json: {
-            recipient: { id: senderId },
-            message: { attachment },
-          },
-        });
+        await sendMessage(senderId, { attachment }, pageAccessToken);
       } else {
         // Send an error message if the video could not be fetched
-        request({
-          url: 'https://graph.facebook.com/v13.0/me/messages',
-          qs: { access_token: pageAccessToken },
-          method: 'POST',
-          json: {
-            recipient: { id: senderId },
-            message: { text: 'Error: Unable to fetch video. Please try again later.' },
-          },
-        });
+        await sendMessage(senderId, { text: 'Error: Unable to fetch video. Please try again later.' }, pageAccessToken);
       }
     } catch (error) {
       console.error('Error:', error);
       // Send an error message for unexpected errors
-      request({
-        url: 'https://graph.facebook.com/v13.0/me/messages',
-        qs: { access_token: pageAccessToken },
-        method: 'POST',
-        json: {
-          recipient: { id: senderId },
-          message: { text: 'Error: Unexpected error occurred.' },
-        },
-      });
+      await sendMessage(senderId, { text: 'Error: Unexpected error occurred.' }, pageAccessToken);
     }
   }
 };
