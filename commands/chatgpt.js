@@ -2,8 +2,7 @@ const axios = require('axios');
 
 module.exports = {
   name: 'chatgpt',
-  description: 'Ask a question to GPT-4',
-  usage: '-chatgpt <question>',
+  description: 'Ask a question to GPT-4\nusage: -chatgpt <question>',
   author: 'Deku (rest api)',
 
   async execute(senderId, args, pageAccessToken, sendMessage) {
