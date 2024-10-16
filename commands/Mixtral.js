@@ -7,8 +7,9 @@ const token = fs.readFileSync('token.txt', 'utf8');
 module.exports = {
   name: 'mixtral',
   description: 'Talk to Mixtral AI',
-  author: 'Your Name',
   usage: '-mixtral <question>',
+  author: 'Your Name',
+
   async execute(senderId, args) {
     const pageAccessToken = token;
 
