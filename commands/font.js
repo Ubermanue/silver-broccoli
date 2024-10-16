@@ -391,7 +391,7 @@ module.exports = {
     const pageAccessToken = token;
 
     if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(senderId, { text: '・──── >ᴗ< ────・\nPlease provide a font type and message.\nExample: -font fancy Hello!\n\nTo see the list of font types\nchat -font list.\n・───────────・' }, pageAccessToken);
+      await sendMessage(senderId, { text: '・──── >ᴗ< ────・\nPlease provide a font type and message.\n\nExample: -font cursive Hello!\n\nTo see the list of font types\nchat -font list.\n・───────────・' }, pageAccessToken);
       return;
     }
 
