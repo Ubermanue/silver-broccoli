@@ -8,7 +8,9 @@ const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
 module.exports = {
   name: 'pinterest',
   description: 'Search Pinterest for images',
-  author: 'Your Name',
+  usage: '-pinterest prompt -number',
+  author: 'coffee',
+
   async execute(senderId, args) {
     // Ensure args is defined and is an array, default to an empty string if not
     if (!args || !Array.isArray(args) || args.length === 0) {
