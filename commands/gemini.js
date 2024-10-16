@@ -27,10 +27,27 @@ module.exports = {
       const footer = '\n・──── >ᴗ< ────・';
       const fullResponse = `${header}${geminiResponse.trim()}${footer}`;
 
-      await sendMessage(senderId, { text: fullResponse }, pageAccessToken);
+      // Split the response into chunks if it exceeds 2000 characters
+      const maxMessageLength = 2000 - header.length - footer.length; // Adjust for header/footer length
+      if (fullResponse.length > 2000) {
+        const messages = splitMessageIntoChunks(fullResponse, maxMessageLength);
+        for (const message of messages) {
+          await sendMessage(senderId, { text: message }, pageAccessToken);
+        }
+      } else {
+        await sendMessage(senderId, { text: fullResponse }, pageAccessToken);
+      }
     } catch (error) {
       console.error('Error calling Gemini API:', error);
       await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
     }
   }
 };
+
+function splitMessageIntoChunks(message, chunkSize) {
+  const chunks = [];
+  for (let i = 0; i < message.length; i += chunkSize) {
+    chunks.push(message.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
