@@ -18,17 +18,15 @@ module.exports = {
     const query = args.join(" ") || "hi";
 
     try {
-      const response = await axios.get(`https://nash-rest-api-production.up.railway.app/gemini-1.5-flash-latest?prompt=${query}`);
-      const author = response.data.author;
-      const geminiResponse = response.data.response;
+      const { response: geminiResponse } = (await axios.get(`https://nash-rest-api-production.up.railway.app/gemini-1.5-flash-latest?prompt=${query}`)).data;
 
-      // Verify that the author is indeed NashBot
-      if (author === 'NashBot' && geminiResponse) {
+      // Check if there is a response from the API
+      if (geminiResponse) {
         const formattedMessage = `${header}${geminiResponse}${footer}`;
         await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
       } else {
-        console.error('Error: Unexpected author or no response');
-        await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
+        console.error('Error: No response available');
+        await sendMessage(senderId, { text: 'Error: No response available.' }, pageAccessToken);
       }
     } catch (error) {
       console.error('Error:', error);
