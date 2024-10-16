@@ -6,7 +6,8 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'blackbox',
-  description: 'Chat with Blackbox Conversational AI',
+  description: 'Chat with Blackbox AI',
+  usage: '-blackbox <question>',
   author: 'Coffee',
   async execute(senderId, args) {
     const pageAccessToken = token;
