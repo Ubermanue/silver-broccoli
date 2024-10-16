@@ -2,7 +2,8 @@ const { callGeminiAPI } = require('../utils/callGeminiAPI');
 
 module.exports = {
   name: 'gemini',
-  description: 'Ask a question to the Gemini AI,\nusage: -gemini <question>',
+  description: 'Interact with Gemini AI.', 
+  usage: '-gemini <question>',
   author: 'ChatGPT',
 
   async execute(senderId, args, pageAccessToken, sendMessage) {
