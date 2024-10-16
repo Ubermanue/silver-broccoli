@@ -3,7 +3,7 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'alldl',
-  description: 'Downloads a video from Facebook, TikTok, Instagram, and YouTube',
+  description: 'Downloads a video from Facebook, TikTok, and Instagram',
   author: 'coffee',
   async execute(senderId, args, pageAccessToken) {
     if (!args || !Array.isArray(args) || args.length === 0) {
@@ -14,13 +14,21 @@ module.exports = {
     const url = args.join(' ');
 
     try {
-      let apiUrl;
-      if (url.includes('youtube.com')) {
-        apiUrl = `https://ajiro-rest-api.gleeze.com/api/downloaderV2?url=${encodeURIComponent(url)}`;
-      } else {
-        apiUrl = `https://ajiro-rest-api.gleeze.com/api/downloader?url=${encodeURIComponent(url)}`;
+      if (url.includes('tiktok.com')) {
+        // TikTok
+        const apiUrl = `https://hiroshi-api.onrender.com/tiktok/download?url=${encodeURIComponent(url)}`;
+        const response = await axios.get(apiUrl);
+
+        if (response.data && response.data.code === 0) {
+          const videoUrl = response.data.data.play;
+          await sendMessage(senderId, { attachment: { type: 'video', payload: { url: videoUrl } } }, pageAccessToken);
+        } else {
+          await sendMessage(senderId, { text: 'Error: Unable to fetch TikTok video. Please try again later.' }, pageAccessToken);
+        }
+        return;
       }
 
+      const apiUrl = `https://ajiro-rest-api.gleeze.com/api/downloader?url=${encodeURIComponent(url)}`;
       const response = await axios.get(apiUrl);
 
       if (response.data && response.data.content && response.data.content.status === true) {
@@ -34,10 +42,6 @@ module.exports = {
           } else {
             await sendMessage(senderId, { text: 'Error: Unable to find HD quality video.' }, pageAccessToken);
           }
-        } else if (data.mp4NoWm) {
-          // TikTok
-          const videoUrl = data.mp4NoWm[0];
-          await sendMessage(senderId, { attachment: { type: 'video', payload: { url: videoUrl } } }, pageAccessToken);
         } else if (data.url) {
           // Instagram
           const videoUrls = data.url;
@@ -48,10 +52,6 @@ module.exports = {
         } else {
           await sendMessage(senderId, { text: 'Error: Unable to fetch video. Please try again later.' }, pageAccessToken);
         }
-      } else if (response.data && response.data.content && response.data.content.status === 'stream') {
-        // YouTube
-        const videoUrl = response.data.content.url;
-        await sendMessage(senderId, { attachment: { type: 'video', payload: { url: videoUrl } } }, pageAccessToken);
       } else {
         await sendMessage(senderId, { text: 'Error: Unable to fetch video. Please try again later.' }, pageAccessToken);
       }
