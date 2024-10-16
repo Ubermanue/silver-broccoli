@@ -400,7 +400,8 @@ module.exports = {
     // Font listing feature
     if (command === 'list') {
       const exampleText = 'Hello';
-      const header = '═「𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐅𝐨𝐧𝐭𝐬 」═\n\n 𝑭𝒐𝒏𝒕 𝑵𝒂𝒎𝒆     𝑺𝒂𝒎𝒑𝒍𝒆';
+      const header = '・───────────・\n═「𝐀𝐯𝐚𝐢𝐥𝐚𝐛𝐥𝐞 𝐅𝐨𝐧𝐭𝐬 」═\n\n 𝑭𝒐𝒏𝒕 𝑵𝒂𝒎𝒆     𝑺𝒂𝒎𝒑𝒍𝒆';
+      const footer = '・──── >ᴗ< ────・';
       const maxFontNameLength = Math.max(...fontMaps.map(fontMap => fontMap.name.length));
 
       const availableFontsList = fontMaps.map((fontMap) => {
@@ -414,7 +415,7 @@ module.exports = {
         return `${formattedFontName}${padding}     ${exampleChar}`;
       }).join('\n');
 
-      const message = `${header}\n\n${availableFontsList}`;
+      const message = `${header}\n\n${availableFontsList}\n${footer}`;
       await sendMessage(senderId, { text: message }, pageAccessToken);
       return;
     }
