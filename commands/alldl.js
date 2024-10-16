@@ -46,7 +46,8 @@ module.exports = {
             response.pipe(file);
             file.on('finish', () => {
               file.close();
-              sendMessage(senderId, { attachment: { type: 'video', payload: { url: filePath } } }, pageAccessToken);
+              const fileBuffer = fs.readFileSync(filePath);
+              sendMessage(senderId, { attachment: { type: 'video', payload: { file: fileBuffer } } }, pageAccessToken);
             });
           });
         } else if (data.url) {
@@ -68,7 +69,8 @@ module.exports = {
           response.pipe(file);
           file.on('finish', () => {
             file.close();
-            sendMessage(senderId, { attachment: { type: 'video', payload: { url: filePath } } }, pageAccessToken);
+            const fileBuffer = fs.readFileSync(filePath);
+            sendMessage(senderId, { attachment: { type: 'video', payload: { file: fileBuffer } } }, pageAccessToken);
           });
         });
       } else {
