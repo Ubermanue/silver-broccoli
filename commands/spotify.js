@@ -6,7 +6,7 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'spotify',
-  description: 'Play a song from Spotify\nusage: -spotify <song title>',
+  description: 'Play a song from Spotify.',
   author: 'coffee',
   async execute(senderId, args) {
     const pageAccessToken = token;
@@ -31,10 +31,7 @@ module.exports = {
             const trackUrl = response.data.trackURLs[0];
             const downloadLink = await axios.get(`https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackUrl)}`);
             const downloadUrl = downloadLink.data.download_link;
-            const title = downloadLink.data.title;
-            const artist = downloadLink.data.artist;
 
-            await sendMessage(senderId, { text: `🎧 | Title: ${title}\n🎤 | Artist: ${artist}` }, pageAccessToken);
             await sendMessage(senderId, { attachment: { type: 'audio', payload: { url: downloadUrl } } }, pageAccessToken);
             return;
           }
