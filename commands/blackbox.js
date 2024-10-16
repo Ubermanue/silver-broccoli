@@ -1,17 +1,25 @@
 const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
+const fs = require('fs');
+
+const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'blackbox',
   description: 'Chat with Blackbox Conversational AI',
   author: 'Coffee',
+  async execute(senderId, args) {
+    const pageAccessToken = token;
 
-  async execute({ senderId, args, pageAccessToken }) {
+    if (!args || !Array.isArray(args) || args.length === 0) {
+      await sendMessage(senderId, { text: 'Please provide a message.' }, pageAccessToken);
+      return;
+    }
+
+    const input = args.join(' ');
+
     try {
-      // Set a default query if none is provided
-      const query = args.join(" ") || "hi";
-
-      const response = await axios.get(`https://openapi-idk8.onrender.com/blackbox?chat=${query}`);
+      const response = await axios.get(`https://openapi-idk8.onrender.com/blackbox?chat=${input}`);
 
       const data = response.data;
       const formattedMessage = `⿻ | 𝙱𝚕𝚊𝚌𝚔 𝙱𝚘𝚡 \n・───────────・\n${data.response}\n・──── >ᴗ< ─────・`;
@@ -19,7 +27,7 @@ module.exports = {
       await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
     } catch (error) {
       console.error('Error:', error);
-      await sendMessage(senderId, { text: `⿻ | 𝙱𝚕𝚊𝚌𝚔 𝙱𝚘𝚡 \n・───────────・\nError: Unexpected error.\n・──── >ᴗ< ─────・` }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
     }
   }
 };
