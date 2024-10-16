@@ -18,16 +18,12 @@ module.exports = {
     const query = args.join(" ") || "hi";
 
     try {
-      const { response: geminiResponse } = (await axios.get(`https://nash-rest-api-production.up.railway.app/gemini-1.5-flash-latest?prompt=${query}`)).data;
+      const apiResponse = (await axios.get(`https://nash-rest-api-production.up.railway.app/gemini-1.5-flash-latest?prompt=${query}`)).data;
 
-      // Check if there is a response from the API
-      if (geminiResponse) {
-        const formattedMessage = `${header}${geminiResponse}${footer}`;
-        await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
-      } else {
-        console.error('Error: No response available');
-        await sendMessage(senderId, { text: 'Error: No response available.' }, pageAccessToken);
-      }
+      // Format the entire API response for sending
+      const formattedMessage = `${header}${JSON.stringify(apiResponse, null, 2)}${footer}`;
+
+      await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
     } catch (error) {
       console.error('Error:', error);
       await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
