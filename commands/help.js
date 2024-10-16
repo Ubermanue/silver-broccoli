@@ -12,7 +12,10 @@ module.exports = {
 
     const commands = commandFiles.map(file => {
       const command = require(path.join(commandsDir, file));
-      return `│ - ${command.name}`;
+      return `│ - ${command.name}
+│• ${command.description}
+│• ${command.usage}
+│`;
     });
 
     const helpMessage = `━━━━━━━━━━━━━━
