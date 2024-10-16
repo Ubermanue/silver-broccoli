@@ -3,7 +3,7 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'imagine',
-  description: 'Generate images through prompt.',
+  description: 'Generate images via prompt',
   usage: '-imagine <prompt>',
   author: 'coffee',
   async execute(senderId, args, pageAccessToken) {
