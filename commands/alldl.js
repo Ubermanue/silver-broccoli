@@ -3,7 +3,8 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'alldl',
-  description: 'Fetch a video from various platforms\nusage: -alldl <link>',
+  description: 'Get video from various platforms.',
+  usage: '-alldl <link>',
   author: 'coffee',
   async execute(senderId, args, pageAccessToken) {
     if (!args || !Array.isArray(args) || args.length === 0) {
