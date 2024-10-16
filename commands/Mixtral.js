@@ -8,6 +8,7 @@ module.exports = {
   name: 'mixtral',
   description: 'Talk to Mixtral AI',
   author: 'Your Name',
+  usage: '-mixtral <question>',
   async execute(senderId, args) {
     const pageAccessToken = token;
 
