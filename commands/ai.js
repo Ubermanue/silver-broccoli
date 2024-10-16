@@ -51,7 +51,7 @@ const handleApiError = (error, senderId, pageAccessToken, sendMessage, retryCall
 
 module.exports = {
   name: 'ai',
-  description: 'Interact with llama3 Ai.',
+  description: 'Interact with llama3',
   usage: '-ai <question>',
   author: 'Nics/Coffee',
 
