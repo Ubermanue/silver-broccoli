@@ -58,10 +58,10 @@ const loadCommands = () => {
 
   commandFiles.forEach(file => {
     const command = require(path.join(COMMANDS_PATH, file));
-    if (command.name && command.description && command.usage) {
+    if (command.name && command.description) {
       commands.push({
         name: `-${command.name}`, // Adding a hyphen (-) before the command name
-        description: `${command.description}\nUsage: ${command.usage}`
+        description: command.description
       });
     }
   });
