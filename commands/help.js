@@ -4,6 +4,7 @@ const path = require('path');
 module.exports = {
   name: 'help',
   description: 'Show available commands',
+  usage: '-help',
   author: 'System',
   execute(senderId, args, pageAccessToken, sendMessage) {
     const commandsDir = path.join(__dirname, '../commands');
