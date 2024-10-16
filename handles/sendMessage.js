@@ -1,6 +1,6 @@
 const request = require('request');
 
-function sendMessage(senderId, message, pageAccessToken) {
+const sendMessage = (senderId, message, pageAccessToken) => {
   if (!message || (!message.text && !message.attachment)) {
     console.error('Error: Message must provide valid text or attachment.');
     return;
@@ -8,31 +8,26 @@ function sendMessage(senderId, message, pageAccessToken) {
 
   const payload = {
     recipient: { id: senderId },
-    message: {}
+    message: {
+      text: message.text || undefined,
+      attachment: message.attachment || undefined,
+    },
   };
-
-  if (message.text) {
-    payload.message.text = message.text;
-  }
-
-  if (message.attachment) {
-    payload.message.attachment = message.attachment;
-  }
 
   request({
     url: 'https://graph.facebook.com/v13.0/me/messages',
     qs: { access_token: pageAccessToken },
     method: 'POST',
     json: payload,
-  }, (error, response, body) => {
+  }, (error, response) => {
     if (error) {
       console.error('Error sending message:', error);
-    } else if (response.body.error) {
+    } else if (response.body?.error) {
       console.error('Error response:', response.body.error);
     } else {
-      console.log('Message sent successfully:', body);
+      console.log('Message sent successfully:', response.body);
     }
   });
-}
+};
 
 module.exports = { sendMessage };
