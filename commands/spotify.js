@@ -33,7 +33,7 @@ module.exports = {
             const downloadUrl = downloadLink.data.download_link;
 
             await sendMessage(senderId, { text: `Playing: ${input}` }, pageAccessToken);
-            await sendMessage(senderId, { attachment: downloadUrl }, pageAccessToken);
+            await sendMessage(senderId, { attachment: { type: 'audio', payload: { url: downloadUrl } } }, pageAccessToken);
             return;
           }
         } catch (error) {
