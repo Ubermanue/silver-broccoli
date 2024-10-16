@@ -6,18 +6,18 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'spotify',
-  description: 'Play a song from Spotify',
+  description: 'Play a song from Spotify\nusage: -spotify <song title>',
   author: 'coffee',
-
-  async execute({ senderId, args }) {
+  async execute(senderId, args, pageAccessToken) {
     const pageAccessToken = token;
 
     if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(senderId, { text: 'Error: Missing song title!' }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Please provide a song title.' }, pageAccessToken);
       return;
     }
 
     const input = args.join(' ');
+
     try {
       const trackURLServices = [
         { url: 'https://spotify-play-iota.vercel.app/spotify', params: { query: '' } },
@@ -32,6 +32,7 @@ module.exports = {
             const trackUrl = response.data.trackURLs[0];
             const downloadLink = await axios.get(`https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackUrl)}`);
             const downloadUrl = downloadLink.data.download_link;
+
             await sendMessage(senderId, { text: `Playing: ${input}` }, pageAccessToken);
             await sendMessage(senderId, { attachment: downloadUrl }, pageAccessToken);
             return;
@@ -41,7 +42,8 @@ module.exports = {
         }
       }
 
-      await sendMessage(senderId, { text: 'Error: Unable to find song.' }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Error: Could not find song.' }, pageAccessToken);
+
     } catch (error) {
       console.error('Error:', error);
       await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
