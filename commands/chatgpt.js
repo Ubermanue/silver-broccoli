@@ -16,8 +16,11 @@ module.exports = {
       const response = await axios.get(apiUrl);
       const { message, img_urls } = response.data;
 
+      console.log('Response data:', response.data);
+
       // If there are image URLs, send them as image attachments
       if (img_urls && img_urls.length > 0) {
+        console.log('Image URLs:', img_urls);
         for (const imgUrl of img_urls) {
           const attachment = {
             type: 'image',
@@ -26,6 +29,7 @@ module.exports = {
           await sendMessage(senderId, { attachment }, pageAccessToken);
         }
       } else {
+        console.log('No image URLs found.');
         // Clean up the message by removing any unwanted markdown-style image links
         const cleanMessage = message.replace(/!.*?.*?/, '').trim();
 
