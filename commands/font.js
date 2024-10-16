@@ -17,6 +17,13 @@ const fontMaps = [
       'R': '𝑅', 'S': '𝒮', 'T': '𝒯', 'U': '𝒰', 'V': '𝒱', 'W': '𝒲', 'X': '𝒳', 'Y': '𝒴', 'Z': '𝒵',
     },
   },
+  {
+    name: 'cursive',
+    map: {
+      // Add cursive character mappings here similar to 'fancy'
+    },
+  },
+  // Add more fonts as needed
 ];
 
 module.exports = {
@@ -26,13 +33,42 @@ module.exports = {
   async execute(senderId, args) {
     const pageAccessToken = token;
 
-    if (!args || !Array.isArray(args) || args.length < 2) {
+    if (!args || !Array.isArray(args) || args.length === 0) {
       await sendMessage(senderId, { text: 'Please provide a font type and message. Example: -font fancy Hello!' }, pageAccessToken);
       return;
     }
 
-    const fontType = args[0].toLowerCase();
-    const inputText = args.slice(1).join(' ');
+    const command = args[0].toLowerCase();
+
+    // Font listing feature
+    if (command === 'list') {
+      const exampleText = 'Hello';
+      const header = '══════ Available Fonts ══════\nFont Name           Sample';
+      const maxFontNameLength = Math.max(...fontMaps.map(fontMap => fontMap.name.length));
+
+      const availableFontsList = fontMaps.map((fontMap) => {
+        const exampleChar = exampleText.split('')
+          .map((char) => fontMap.map[char] || char)
+          .join('');
+
+        const formattedFontName = `★ ${fontMap.name.padEnd(maxFontNameLength)}`;
+        const padding = ' '.repeat(maxFontNameLength - fontMap.name.length);
+
+        return `${formattedFontName}${padding}  ${exampleChar}`;
+      }).join('\n');
+
+      const message = `${header}\n${availableFontsList}`;
+      await sendMessage(senderId, { text: message }, pageAccessToken);
+      return;
+    }
+
+    if (args.length < 2) {
+      await sendMessage(senderId, { text: 'Invalid usage. Please provide a font type and message.\nExample: -font fancy Hello!\nUse -font list to see available fonts.' }, pageAccessToken);
+      return;
+    }
+
+    const fontType = args.shift().toLowerCase();
+    const inputText = args.join(' ');
 
     const chosenFontMap = fontMaps.find((fontMap) => fontMap.name === fontType);
 
