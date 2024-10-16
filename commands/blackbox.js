@@ -1,11 +1,12 @@
 const axios = require('axios');
+const { sendMessage } = require('./handles/sendMessage');
 
 module.exports = {
   name: 'blackbox',
   description: 'Chat with Blackbox Conversational AI',
   author: 'Coffee',
 
-  async execute({ senderId, args, pageAccessToken, sendMessage }) {
+  async execute({ senderId, args, pageAccessToken }) {
     try {
       // Set a default query if none is provided
       const query = args.join(" ") || "hi";
