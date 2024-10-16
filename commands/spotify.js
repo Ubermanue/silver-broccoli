@@ -8,7 +8,7 @@ module.exports = {
   name: 'spotify',
   description: 'Play a song from Spotify\nusage: -spotify <song title>',
   author: 'coffee',
-  async execute(senderId, args, pageAccessToken) {
+  async execute(senderId, args) {
     const pageAccessToken = token;
 
     if (!args || !Array.isArray(args) || args.length === 0) {
