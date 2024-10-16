@@ -1,5 +1,8 @@
 const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
 
 module.exports = {
   name: 'alldl',
@@ -36,10 +39,15 @@ module.exports = {
           }
         } else if (data.mp4NoWm) {
           // TikTok
-          const videoUrls = data.mp4NoWm;
-          await sendMessage(senderId, { text: 'Video URLs:' }, pageAccessToken);
-          videoUrls.forEach((videoUrl) => {
-            sendMessage(senderId, { attachment: { type: 'video', payload: { url: videoUrl } } }, pageAccessToken);
+          const videoUrl = data.mp4NoWm[0];
+          const filePath = path.join(__dirname, 'cache', 'tiktok.mp4');
+          const file = fs.createWriteStream(filePath);
+          const request = https.get(videoUrl, (response) => {
+            response.pipe(file);
+            file.on('finish', () => {
+              file.close();
+              sendMessage(senderId, { attachment: { type: 'video', payload: { url: filePath } } }, pageAccessToken);
+            });
           });
         } else if (data.url) {
           // Instagram
@@ -54,7 +62,15 @@ module.exports = {
       } else if (response.data && response.data.content && response.data.content.status === 'stream') {
         // YouTube
         const videoUrl = response.data.content.url;
-        await sendMessage(senderId, { attachment: { type: 'video', payload: { url: videoUrl } } }, pageAccessToken);
+        const filePath = path.join(__dirname, 'cache', 'youtube.mp4');
+        const file = fs.createWriteStream(filePath);
+        const request = https.get(videoUrl, (response) => {
+          response.pipe(file);
+          file.on('finish', () => {
+            file.close();
+            sendMessage(senderId, { attachment: { type: 'video', payload: { url: filePath } } }, pageAccessToken);
+          });
+        });
       } else {
         await sendMessage(senderId, { text: 'Error: Unable to fetch video. Please try again later.' }, pageAccessToken);
       }
