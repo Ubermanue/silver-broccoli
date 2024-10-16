@@ -3,7 +3,7 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'alldl',
-  description: 'Get video from various platforms.',
+  description: 'Get videos from platforms',
   usage: '-alldl <link>',
   author: 'coffee',
   async execute(senderId, args, pageAccessToken) {
