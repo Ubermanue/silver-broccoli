@@ -23,7 +23,8 @@ module.exports = {
   author: 'ChatGPT',
   async execute(senderId, args, pageAccessToken, sendMessage) {
     try {
-      const prompt = args.join(' ');
+      // Default to "hi" if no query is provided
+      const prompt = (args.join(' ') || 'hi').trim();
       const response = await callGeminiAPI(prompt, senderId);
 
       await sendMessage(senderId, { 
