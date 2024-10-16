@@ -19,10 +19,17 @@ module.exports = {
 
     try {
       const response = await axios.get(`https://nash-rest-api-production.up.railway.app/gemini-1.5-flash-latest?prompt=${query}`);
+      const author = response.data.author;
       const geminiResponse = response.data.response;
       const formattedMessage = `${header}${geminiResponse}${footer}`;
 
-      await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
+      // Verify that the author is indeed NashBot
+      if (author === 'NashBot') {
+        await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
+      } else {
+        console.error('Error: Unexpected author');
+        await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
+      }
     } catch (error) {
       console.error('Error:', error);
       await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
