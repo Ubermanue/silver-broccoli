@@ -95,6 +95,7 @@ const wrapResponseMessage = (text) => {
 module.exports = {
   name: 'ai',
   description: 'response within seconds',
+  usage: '-ai <question>',
   author: 'Nics',
 
   async execute(senderId, messageText, pageAccessToken, sendMessage) {
