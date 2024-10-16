@@ -2,7 +2,7 @@ const axios = require('axios');
 
 module.exports = {
   name: 'spotify',
-  description: 'Get a Spotify link for a song',
+  description: 'Sends an audio attachment from spotify.',
   usage: '-spotify <song name>',
   author: 'coffee',
 
