@@ -12,22 +12,22 @@ module.exports = {
   async execute(senderId, args) {
     const pageAccessToken = token;
 
-    if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(senderId, { text: 'Please provide a message.' }, pageAccessToken);
-      return;
-    }
+    // Default to "hi" if no query is provided
+    const query = args.join(' ') || 'hi';
 
-    const input = args.join(' ');
+    // Automatically add "short direct answer" to the user's prompt
+    const modifiedPrompt = `${query.trim()}, short direct answer.`;
 
     try {
-      const response = await axios.get(`https://openapi-idk8.onrender.com/blackbox?chat=${input}`);
+      // Make the request using the modified prompt
+      const response = await axios.get(`https://openapi-idk8.onrender.com/blackbox?chat=${encodeURIComponent(modifiedPrompt)}`);
 
       const data = response.data;
       const formattedMessage = `⿻ | 𝙱𝚕𝚊𝚌𝚔 𝙱𝚘𝚡 \n・───────────・\n${data.response}\n・──── >ᴗ< ─────・`;
 
       await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error:', error.message);
       await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
     }
   }
