@@ -1,11 +1,12 @@
 const axios = require('axios');
+const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'spotify',
   description: 'Play a song from Spotify',
   author: 'coffee',
 
-  async execute({ senderId, args, pageAccessToken, sendMessage }) {
+  async execute({ senderId, args, pageAccessToken }) {
     if (!args || !Array.isArray(args) || args.length === 0) {
       await sendMessage(senderId, { text: 'Error: Missing song title!' }, pageAccessToken);
       return;
