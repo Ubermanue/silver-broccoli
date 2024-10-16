@@ -3,7 +3,9 @@ const axios = require('axios');
 module.exports = {
   name: 'spotify',
   description: 'Get a Spotify link for a song',
-  author: 'Deku (rest api)',
+  usage: '-spotify <song name>',
+  author: 'coffee',
+
   async execute(senderId, args, pageAccessToken, sendMessage) {
     const query = args.join(' ');
 
