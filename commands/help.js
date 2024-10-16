@@ -12,6 +12,12 @@ module.exports = {
 
     const commands = commandFiles.map(file => {
       const command = require(path.join(commandsDir, file));
+      return {
+        name: command.name,
+        description: command.description,
+        usage: command.usage
+      };
+    }).sort((a, b) => a.name.localeCompare(b.name)).map(command => {
       return `│ - ${command.name}
 │• ${command.description}
 │• ${command.usage}
