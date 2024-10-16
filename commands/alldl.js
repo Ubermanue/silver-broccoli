@@ -3,7 +3,7 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'alldl',
-  description: 'Downloads a video from Facebook, TikTok, and Instagram',
+  description: 'Fetch a video from various platforms',
   author: 'coffee',
   async execute(senderId, args, pageAccessToken) {
     if (!args || !Array.isArray(args) || args.length === 0) {
