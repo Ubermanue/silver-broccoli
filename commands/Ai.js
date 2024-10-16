@@ -43,8 +43,9 @@ const switchApiKey = () => {
 
 module.exports = {
   name: 'ai',
-  description: 'response within seconds\nusage: -ai <question>',
-  author: 'Nics',
+  description: 'response within seconds.',
+  usage: '-ai <question>',
+  author: 'Nics/Coffee',
 
   async execute(senderId, messageText, pageAccessToken, sendMessage) {
     try {
