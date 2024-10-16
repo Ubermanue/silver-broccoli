@@ -124,6 +124,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
 
-  // Load Messenger Menu Commands asynchronously after the server starts
-  await loadMenuCommands();
+  // Reload Messenger Menu Commands asynchronously after the server starts
+  await reloadMenuCommands();
 });
