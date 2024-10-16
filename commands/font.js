@@ -391,7 +391,7 @@ module.exports = {
     const pageAccessToken = token;
 
     if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(senderId, { text: 'Please provide a font type and message.\nExample: -font fancy Hello!\n\nTo see the list of font types\nchat -font list.' }, pageAccessToken);
+      await sendMessage(senderId, { text: '・──── >ᴗ< ────・\nPlease provide a font type and message.\nExample: -font fancy Hello!\n\nTo see the list of font types\nchat -font list.\n・───────────・' }, pageAccessToken);
       return;
     }
 
@@ -440,7 +440,7 @@ module.exports = {
       .map((char) => chosenFontMap.map[char] || char)
       .join('');
 
-    const formattedMessage = `・───────────・\n${outputText}\n・──── >ᴗ< ────・`;
+    const formattedMessage = `${outputText}`;
 
     try {
       await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
