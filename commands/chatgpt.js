@@ -7,13 +7,18 @@ module.exports = {
   author: 'Deku (rest api)',
 
   async execute(senderId, args, pageAccessToken, sendMessage) {
-    const prompt = args.join(' ');
+    // Default to "hi" if no query is provided
+    const prompt = (args.join(' ') || 'hi').trim();
+
+    // Automatically add "short direct answer" to the user's prompt
+    const modifiedPrompt = `${prompt}, short direct answer.`;
+
     const header = 'ᝰ.ᐟ | 𝙲𝚑𝚊𝚝𝙶𝙿𝚃\n・───────────・\n';
     const footer = '\n・──── >ᴗ< ─────・';
 
     try {
       // Use senderId for uid
-      const apiUrl = `https://ajiro-rest-api.gleeze.com/api/gpt4o1?prompt=${encodeURIComponent(prompt)}&uid=${senderId}`;
+      const apiUrl = `https://ajiro-rest-api.gleeze.com/api/gpt4o1?prompt=${encodeURIComponent(modifiedPrompt)}&uid=${senderId}`;
       const response = await axios.get(apiUrl);
       const { message, img_urls } = response.data;
 
@@ -37,16 +42,8 @@ module.exports = {
         // Add header and footer to the cleaned-up message
         const formattedMessage = `${header}${cleanMessage}${footer}`;
 
-        // Send the message if it's under the character limit, otherwise split it
-        const maxMessageLength = 2000;
-        if (cleanMessage.length > maxMessageLength) {
-          const messages = splitMessageIntoChunks(formattedMessage, maxMessageLength);
-          for (const msg of messages) {
-            await sendMessage(senderId, { text: msg }, pageAccessToken);
-          }
-        } else {
-          await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
-        }
+        // Send the message directly without splitting
+        await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
       }
     } catch (error) {
       console.error('Error calling GPT-4 API:', error);
@@ -55,11 +52,3 @@ module.exports = {
     }
   }
 };
-
-function splitMessageIntoChunks(message, chunkSize) {
-  const chunks = [];
-  for (let i = 0; i < message.length; i += chunkSize) {
-    chunks.push(message.slice(i, i + chunkSize));
-  }
-  return chunks;
-}
