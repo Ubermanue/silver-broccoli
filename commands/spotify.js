@@ -20,8 +20,7 @@ module.exports = {
 
     try {
       const trackURLServices = [
-        { url: 'https://spotify-play-iota.vercel.app/spotify', params: { query: '' } },
-        { url: 'https://www.samirxpikachu.run.place/spotifysearch', params: { q: '' } }
+        { url: 'https://spotify-play-iota.vercel.app/spotify', params: { query: '' } }
       ];
 
       for (const { url, params } of trackURLServices) {
