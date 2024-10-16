@@ -2,40 +2,43 @@ const axios = require('axios');
 
 module.exports = {
   name: 'spotify',
-  description: 'Sends an audio attachment from spotify.\nusage: -spotify <song name>',
+  description: 'Play a song from Spotify',
   author: 'coffee',
 
-  async execute(senderId, args, pageAccessToken, sendMessage) {
-    const query = args.join(' ');
+  async execute({ senderId, args, pageAccessToken, sendMessage }) {
+    if (!args || !Array.isArray(args) || args.length === 0) {
+      await sendMessage(senderId, { text: 'Error: Missing song title!' }, pageAccessToken);
+      return;
+    }
 
+    const input = args.join(' ');
     try {
-      const apiUrl = `https://www.samirxpikachu.run.place/spotifysearch?q=${encodeURIComponent(query)}`;
-      const response = await axios.get(apiUrl);
+      const trackURLServices = [
+        { url: 'https://spotify-play-iota.vercel.app/spotify', params: { query: '' } },
+        { url: 'https://www.samirxpikachu.run.place/spotifysearch', params: { q: '' } }
+      ];
 
-      // Check if the API call was successful and results were returned
-      if (response.data && response.data.length > 0) {
-        const tracks = response.data;
-        const firstTrack = tracks[0];
-        const audioUrl = firstTrack.preview_mp3;
-        if (audioUrl) {
-          sendMessage(senderId, {
-            attachment: {
-              type: 'audio',
-              payload: {
-                url: audioUrl,
-                is_reusable: true
-              }
-            }
-          }, pageAccessToken);
-        } else {
-          sendMessage(senderId, { text: 'Sorry, no preview available for this track.' }, pageAccessToken);
+      for (const { url, params } of trackURLServices) {
+        try {
+          params.query = input;
+          const response = await axios.get(url, { params });
+          if (response.data.trackURLs && response.data.trackURLs.length > 0) {
+            const trackUrl = response.data.trackURLs[0];
+            const downloadLink = await axios.get(`https://sp-dl-bice.vercel.app/spotify?id=${encodeURIComponent(trackUrl)}`);
+            const downloadUrl = downloadLink.data.download_link;
+            await sendMessage(senderId, { text: `Playing: ${input}` }, pageAccessToken);
+            await sendMessage(senderId, { attachment: downloadUrl }, pageAccessToken);
+            return;
+          }
+        } catch (error) {
+          console.error('Error:', error);
         }
-      } else {
-        sendMessage(senderId, { text: 'Sorry, no Spotify links found for that query.' }, pageAccessToken);
       }
+
+      await sendMessage(senderId, { text: 'Error: Unable to find song.' }, pageAccessToken);
     } catch (error) {
-      console.error('Error retrieving Spotify link:', error);
-      sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
+      console.error('Error:', error);
+      await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
     }
   }
 };
