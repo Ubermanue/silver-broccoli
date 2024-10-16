@@ -28,11 +28,12 @@ module.exports = {
 
         if (data.result) {
           // Facebook
-          const videoUrls = data.result.map((result) => result.url);
-          await sendMessage(senderId, { text: 'Video URLs:' }, pageAccessToken);
-          videoUrls.forEach((videoUrl) => {
-            sendMessage(senderId, { attachment: { type: 'video', payload: { url: videoUrl } } }, pageAccessToken);
-          });
+          const hdVideoUrl = data.result.find((result) => result.quality === 'HD');
+          if (hdVideoUrl) {
+            await sendMessage(senderId, { attachment: { type: 'video', payload: { url: hdVideoUrl.url } } }, pageAccessToken);
+          } else {
+            await sendMessage(senderId, { text: 'Error: Unable to find HD quality video.' }, pageAccessToken);
+          }
         } else if (data.mp4NoWm) {
           // TikTok
           const videoUrls = data.mp4NoWm;
