@@ -16,8 +16,11 @@ module.exports = {
     // Set a default query if none is provided
     const query = args.join(" ") || "hi";
 
+    // Automatically add "short direct answer" to the user's prompt
+    const modifiedPrompt = `${query.trim()}, short direct answer.`;
+
     try {
-      const response = await axios.get(`https://nash-rest-api-production.up.railway.app/Mixtral?userId=${senderId}&message=${query}`);
+      const response = await axios.get(`https://nash-rest-api-production.up.railway.app/Mixtral?userId=${senderId}&message=${encodeURIComponent(modifiedPrompt)}`);
       const data = response.data;
 
       const formattedMessage = `🗨️ | 𝙼𝚒𝚡𝚝𝚛𝚊𝚕 𝙰𝚒 \n・───────────・\n${data.response}\n・──── >ᴗ< ────・`;
