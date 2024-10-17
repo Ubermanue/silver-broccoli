@@ -1,8 +1,6 @@
-// handles/handleMessage.js
 const fs = require('fs');
 const path = require('path');
 const { sendMessage } = require('./sendMessage');
-const { sendQuickReplies } = require('../index');
 
 const commands = new Map();
 const prefix = '-';
@@ -62,9 +60,6 @@ async function handleMessage(event, pageAccessToken) {
           sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
         }
       }
-    } else {
-      // Call sendQuickReplies when no command is found
-      await sendQuickReplies(senderId);
     }
   } else if (event.message) {
     console.log('Received message without text');
