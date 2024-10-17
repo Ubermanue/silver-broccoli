@@ -1,3 +1,4 @@
+// index.js
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -106,6 +107,20 @@ async function sendQuickReplies(senderId) {
   await sendMessage(senderId, {
     quick_replies: quickReplies,
   });
+}
+
+// Function to send messages
+async function sendMessage(senderId, message, pageAccessToken) {
+  try {
+    await axios.post(`https://graph.facebook.com/v21.0/me/messages?access_token=${pageAccessToken}`, {
+      recipient: { id: senderId },
+      message,
+    }, {
+      headers: { "Content-Type": "application/json" }
+    });
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
 }
 
 // Server initialization
