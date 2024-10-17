@@ -3,7 +3,7 @@ const axios = require('axios');
 const callGeminiAPI = async (prompt, senderId) => {
   try {
     // Automatically add "short direct answer" to the user's prompt
-    const modifiedPrompt = `${prompt}, short direct answer.`;
+    const modifiedPrompt = `${prompt}, direct answer.`;
     const apiUrl = `https://gemini-yvcl.onrender.com/api/ai/chat?prompt=${encodeURIComponent(modifiedPrompt)}&id=${senderId}`;
     const response = await axios.get(apiUrl, { timeout: 5000 });
     return response.data.response;
