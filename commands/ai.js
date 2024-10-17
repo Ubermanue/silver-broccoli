@@ -1,56 +1,28 @@
 const Groq = require('groq-sdk');
-const fs = require('fs');
-const { sendMessage } = require('../handles/sendMessage');
-
-// Load the access token from a file
-const token = fs.readFileSync('token.txt', 'utf8');
 
 // Primary and fallback API keys
-const API_KEYS = {
-  primary: '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',
-  fallback: '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',
-};
+const primaryApiKey = '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';
+const fallbackApiKey = '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';
 
 // Initialize Groq with the primary API key
-let groq = new Groq({ apiKey: API_KEYS.primary });
+let groq = new Groq({ apiKey: primaryApiKey });
 
 const messageHistory = new Map();
-const MAX_MESSAGE_LENGTH = 2000;
+const maxMessageLength = 2000;
 
-const wrapResponseMessage = (text) => `
-(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒
-・───────────・
-${text}
-・──── >ᴗ< ─────・
-`;
+const transformBoldContent = (text) => {
+  return text.replace(/\*\*(.*?)\*\*/g, (_, boldText) => boldText);
+};
 
+const wrapResponseMessage = (text) => {
+  const header = "(⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒\n・───────────・\n";
+  const footer = "\n・──── >ᴗ< ─────・";
+  return `${header}${text}${footer}`;
+};
+
+// Function to switch API key
 const switchApiKey = () => {
-  groq = new Groq({ apiKey: API_KEYS.fallback });
-};
-
-const fetchChatCompletion = async (userHistory) => {
-  return await groq.chat.completions.create({
-    messages: userHistory,
-    model: 'llama3-8b-8192',
-    temperature: 1,
-    max_tokens: 1025,
-    top_p: 1,
-    stream: true,
-    stop: null,
-  });
-};
-
-const handleApiError = (error, senderId, pageAccessToken) => {
-  console.error('Error communicating with Groq:', error.message);
-  
-  if (error.message.includes('API limit') || error.message.includes('cooldown')) {
-    console.log('Switching to fallback API key...');
-    switchApiKey();
-    return true; // Indicates the need for a retry
-  }
-  
-  sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
-  return false; // No retry
+  groq = new Groq({ apiKey: fallbackApiKey });
 };
 
 module.exports = {
@@ -59,31 +31,36 @@ module.exports = {
   usage: '-ai <question>',
   author: 'Nics/Coffee',
 
-  async execute(senderId, args) {
-    const pageAccessToken = token;
-
-    // Set a default query if no user input is provided
-    const input = Array.isArray(args) && args.length > 0 ? args.join(' ').trim() : 'hi';
-
-    // Automatically add "short direct answer" to the user's prompt
-    const modifiedPrompt = `${input}, short direct answer.`;
-
+  async execute(senderId, messageText, pageAccessToken, sendMessage) {
     try {
-      console.log("User Message:", modifiedPrompt);
+      console.log("User Message:", messageText);
 
-      const userHistory = messageHistory.get(senderId) ?? [
-        { role: 'system', content: 'Your name is Mocha AI. You can answer any questions asked.' },
-      ];
+      // Automatically add "short direct answer" to the user's prompt
+      const modifiedPrompt = `${messageText}, short direct answer.`;
 
+      const userHistory = messageHistory.get(senderId) || [];
+      if (userHistory.length === 0) {
+        userHistory.push({ role: 'system', content: 'Your name is Mocha AI. You can answer any questions asked.' });
+      }
       userHistory.push({ role: 'user', content: modifiedPrompt });
 
-      const chatCompletion = await fetchChatCompletion(userHistory);
+      const chatCompletion = await groq.chat.completions.create({
+        messages: userHistory,
+        model: 'llama3-8b-8192',
+        temperature: 1,
+        max_tokens: 1025,
+        top_p: 1,
+        stream: true,
+        stop: null
+      });
+
       let responseMessage = '';
 
       for await (const chunk of chatCompletion) {
-        responseMessage += chunk.choices[0]?.delta?.content || '';
+        const chunkContent = chunk.choices[0]?.delta?.content || '';
+        responseMessage += chunkContent;
 
-        if (responseMessage.length >= MAX_MESSAGE_LENGTH) {
+        if (responseMessage.length >= maxMessageLength) {
           sendMessage(senderId, { text: wrapResponseMessage(responseMessage) }, pageAccessToken);
           responseMessage = '';
         }
@@ -93,15 +70,23 @@ module.exports = {
         userHistory.push({ role: 'assistant', content: responseMessage });
         messageHistory.set(senderId, userHistory);
 
-        sendMessage(senderId, { text: wrapResponseMessage(responseMessage) }, pageAccessToken);
+        let transformedMessage = transformBoldContent(responseMessage);
+        sendMessage(senderId, { text: wrapResponseMessage(transformedMessage) }, pageAccessToken);
       } else {
         throw new Error("Received empty response from Groq.");
       }
+
     } catch (error) {
-      if (handleApiError(error, senderId, pageAccessToken)) {
-        // Retry with fallback API key
-        return this.execute(senderId, args);
+      console.error('Error communicating with Groq:', error.message);
+
+      if (error.message.includes('API limit') || error.message.includes('cooldown')) {
+        console.log('Switching to fallback API key...');
+        switchApiKey();
+        // Retry the function with the fallback API key
+        return this.execute(senderId, messageText, pageAccessToken, sendMessage);
       }
+
+      sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
     }
   }
 };
