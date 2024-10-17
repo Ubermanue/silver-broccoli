@@ -18,7 +18,7 @@ const callGeminiAPI = async (prompt, senderId) => {
 
 module.exports = {
   name: 'gemini',
-  description: 'Ask a question to the Gemini AI',
+  description: 'Interact with Gemini AI',
   usage: '-gemini <question>',
   author: 'ChatGPT',
   async execute(senderId, args, pageAccessToken, sendMessage) {
