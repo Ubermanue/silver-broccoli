@@ -46,7 +46,7 @@ function buildHelpMessage() {
   helpMessage += `Chat -𝚑𝚎𝚕𝚙 <command name>\n`;
   helpMessage += `𝚃𝚘 𝚜𝚎𝚎 𝚑𝚘𝚠 𝚝𝚘 𝚞𝚜𝚎 \n`;
   helpMessage += `𝚊𝚟𝚊𝚒𝚕𝚊𝚋𝚕𝚎 𝚌𝚘𝚖𝚖𝚊𝚗𝚍𝚜.\n\n`;
-  helpMessage += `𝙴𝚡𝚊𝚖𝚙𝚕𝚎: -help ai\n`;
+  helpMessage += `𝙴𝚡𝚊𝚖𝚙𝚕𝚎: -help alldl\n`;
   helpMessage += `━━━━━━━━━━━━━━`;
 
   return helpMessage;
