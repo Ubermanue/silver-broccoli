@@ -27,7 +27,7 @@ const switchApiKey = () => {
 
 module.exports = {
   name: 'ai',
-  description: 'Interact with llama3 Ai.',
+  description: 'Interact with llama3',
   usage: '-ai <question>',
   author: 'Nics/Coffee',
 
