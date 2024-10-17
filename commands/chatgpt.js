@@ -10,7 +10,7 @@ module.exports = {
     // Default to "hi" if no query is provided
     const prompt = (args.join(' ') || 'hi').trim();
 
-    // Automatically add "short direct answer" to the user's prompt
+    // Automatically add ", direct answer" to the user's prompt
     const modifiedPrompt = `${prompt}, short direct answer.`;
 
     const header = 'ᝰ.ᐟ | 𝙲𝚑𝚊𝚝𝙶𝙿𝚃\n・───────────・\n';
