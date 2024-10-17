@@ -62,9 +62,9 @@ module.exports = {
   async execute(senderId, args) {
     const pageAccessToken = token;
 
-    // Set a default query if none is provided
-    const input = (args.join(' ') || 'hi').trim();
-    
+    // Ensure args is an array, set a default query if none is provided
+    const input = Array.isArray(args) && args.length > 0 ? args.join(' ').trim() : 'hi';
+
     // Automatically add "short direct answer" to the user's prompt
     const modifiedPrompt = `${input}, short direct answer.`;
 
