@@ -31,19 +31,19 @@ module.exports = {
 function buildHelpMessage() {
   let helpMessage = `━━━━━━━━━━━━━━\n`;
   helpMessage += `𝙰𝚟𝚊𝚒𝚕𝚊𝚋𝚕𝚎 𝙲𝚘𝚖𝚖𝚊𝚗𝚍𝚜:\n`;
-  
+
   for (const [category, commands] of Object.entries(commandCategories)) {
     helpMessage += `╭─╼━━━━━━━━╾─╮\n`;
     helpMessage += `│ ${category}\n`;
     commands.forEach(command => {
       helpMessage += `│ - ${command}\n`;
     });
-    helpMessage += `╰─━━━━━━━━━╾─╯\n\n`; // Ensures that each category has a closing line
+    helpMessage += `╰─━━━━━━━━━╾─╯\n`;
   }
 
   helpMessage += `Chat -𝚑𝚎𝚕𝚙 <command name>\n`;
   helpMessage += `𝚃𝚘 𝚜𝚎𝚎 𝚑𝚘𝚠 𝚝𝚘 𝚞𝚜𝚎 \n`;
-  helpMessage += `𝚊𝚟𝚊𝚒𝚋𝚕𝚎 𝚌𝚘𝚖𝚖𝚊𝚗𝚝𝚜.\n\n`;
+  helpMessage += `𝚊𝚟𝚊𝚒𝚋𝚕𝚎 𝚌𝚘𝚖𝚖𝚊𝚗𝚍𝚜.\n\n`;
   helpMessage += `𝙴𝚡𝚊𝚖𝚙𝚕𝚎: -help alldl\n`;
   helpMessage += `━━━━━━━━━━━━━━`;
 
