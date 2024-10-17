@@ -25,6 +25,7 @@ const langNames = {
     "en": "English",
     "et": "Estonian",
     "fil": "Filipino",
+    "tl": "Tagalog",
     "fi": "Finnish",
     "fr": "French",
     "de": "German",
