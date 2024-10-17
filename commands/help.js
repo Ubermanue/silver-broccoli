@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const commandCategories = {
-  "📖 | 𝙴𝚞𝚌𝚊𝚝𝚒𝚘𝚗": ['ai', 'blackbox', 'chatgpt', 'gemini', 'mixtral'],
+  "📖 | 𝙴𝚍𝚞𝚌𝚊𝚝𝚒𝚘𝚗": ['ai', 'blackbox', 'chatgpt', 'gemini', 'mixtral'],
   "🖼 | 𝙸𝚖𝚊𝚐𝚎": ['gmage', 'imagine', 'pinterest'],
   "🎧 | 𝙼𝚞𝚜𝚒𝚌": ['lyrics', 'spotify'],
   "👥 | 𝙼𝚎𝚖𝚋𝚎𝚛𝚜": ['alldl', 'font', 'gtranslate', 'help']
