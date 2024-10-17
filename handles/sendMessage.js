@@ -1,4 +1,4 @@
-const request = require('request');
+const axios = require('axios');
 
 const sendMessage = (senderId, message, pageAccessToken) => {
   if (!message || (!message.text && !message.attachment)) {
@@ -11,23 +11,17 @@ const sendMessage = (senderId, message, pageAccessToken) => {
     message: {
       text: message.text || undefined,
       attachment: message.attachment || undefined,
+      quick_replies: message.quick_replies || undefined,
     },
   };
 
-  request({
-    url: 'https://graph.facebook.com/v13.0/me/messages',
-    qs: { access_token: pageAccessToken },
-    method: 'POST',
-    json: payload,
-  }, (error, response) => {
-    if (error) {
+  axios.post(`https://graph.facebook.com/v21.0/me/messages?access_token=${pageAccessToken}`, payload)
+    .then(response => {
+      console.log('Message sent successfully:', response.data);
+    })
+    .catch(error => {
       console.error('Error sending message:', error);
-    } else if (response.body?.error) {
-      console.error('Error response:', response.body.error);
-    } else {
-      console.log('Message sent successfully:', response.body);
-    }
-  });
+    });
 };
 
 module.exports = { sendMessage };
