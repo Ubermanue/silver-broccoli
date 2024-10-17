@@ -30,8 +30,10 @@ module.exports = {
         return sendMessage(senderId, { text: `📷 | No images found for "${searchQuery}".` }, pageAccessToken);
       }
 
-      // Send all images as attachments in one message
-      await sendImages(senderId, imageUrls, pageAccessToken);
+      // Send each image as an attachment in separate messages
+      for (const url of imageUrls) {
+        await sendImage(senderId, url, pageAccessToken);
+      }
 
     } catch (error) {
       console.error('Error:', error);
@@ -47,12 +49,11 @@ async function fetchImageUrls(query, count) {
   return data.items ? data.items.slice(0, count).map(item => item.link) : [];
 }
 
-// Send multiple images as attachments
-async function sendImages(senderId, imageUrls, pageAccessToken) {
-  const attachments = imageUrls.map(url => ({
+// Send image as an attachment
+async function sendImage(senderId, url, pageAccessToken) {
+  const attachment = {
     type: 'image',
     payload: { url }
-  }));
-
-  return sendMessage(senderId, { attachment: attachments }, pageAccessToken);
+  };
+  return sendMessage(senderId, { attachment }, pageAccessToken);
 }
