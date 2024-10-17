@@ -17,7 +17,7 @@ module.exports = {
     const query = args.join(" ") || "hi";
 
     // Automatically add "short direct answer" to the user's prompt
-    const modifiedPrompt = `${query.trim()}, short direct answer.`;
+    const modifiedPrompt = `${query.trim()}, direct answer.`;
 
     try {
       const response = await axios.get(`https://nash-rest-api-production.up.railway.app/Mixtral?userId=${senderId}&message=${encodeURIComponent(modifiedPrompt)}`);
