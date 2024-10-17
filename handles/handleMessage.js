@@ -20,7 +20,19 @@ async function handleMessage(event, pageAccessToken) {
   const senderId = event.sender.id;
 
   if (event.message && event.message.text) {
-    const messageText = event.message.text.trim();
+    const messageText = event.message.text.trim().toLowerCase();
+
+    if (messageText === 'commands') {
+      const quickReplies = [
+        {
+          content_type: 'text',
+          title: 'Commands',
+          payload: 'SHOW_COMMANDS'
+        }
+      ];
+      sendMessage(senderId, { text: 'Tap Commands to see all available commands.' }, pageAccessToken, quickReplies);
+      return;
+    }
 
     let commandName, args;
     if (messageText.startsWith(prefix)) {
@@ -53,7 +65,7 @@ async function handleMessage(event, pageAccessToken) {
       try {
         await aiCommand.execute(senderId, messageText, pageAccessToken, sendMessage);
       } catch (error) {
-        console.error('Error executing Ai command:', error);
+        console.error('Error executing AI command:', error);
         if (error.message) {
           sendMessage(senderId, { text: error.message }, pageAccessToken);
         } else {
