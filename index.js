@@ -94,6 +94,20 @@ fs.watch(COMMANDS_PATH, (eventType, filename) => {
   }
 });
 
+// Function to send quick replies
+async function sendQuickReplies(senderId) {
+  const commands = loadCommands();
+  const quickReplies = commands.map(command => ({
+    content_type: "text",
+    title: command.name,
+    payload: command.name,
+  }));
+
+  await sendMessage(senderId, {
+    quick_replies: quickReplies,
+  });
+}
+
 // Server initialization
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
