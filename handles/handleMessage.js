@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { sendMessage } = require('./sendMessage');
+const { sendQuickReplies } = require('./sendQuickReplies');
 
 const commands = new Map();
 const prefix = '-';
@@ -45,6 +46,11 @@ async function handleMessage(event, pageAccessToken) {
           sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
         }
       }
+      return;
+    }
+
+    if (messageText === 'commands') {
+      await sendQuickReplies(senderId, pageAccessToken);
       return;
     }
 
