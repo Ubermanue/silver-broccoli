@@ -12,7 +12,7 @@ const commandCategories = {
 module.exports = {
   name: 'help',
   description: 'Show available commands',
-  usage: '-help <command name>',
+  usage: '-help',
   author: 'System',
 
   execute(senderId, args, pageAccessToken, sendMessage) {
