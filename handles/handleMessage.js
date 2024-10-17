@@ -22,42 +22,44 @@ async function handleMessage(event, pageAccessToken) {
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
 
+    let commandName, args;
     if (messageText.startsWith(prefix)) {
-      const args = messageText.slice(prefix.length).split(' ');
-      const commandName = args.shift().toLowerCase();
+      const argsArray = messageText.slice(prefix.length).split(' ');
+      commandName = argsArray.shift().toLowerCase();
+      args = argsArray;
+    } else {
+      const words = messageText.split(' ');
+      commandName = words.shift().toLowerCase();
+      args = words;
+    }
 
-      if (commands.has(commandName)) {
-        const command = commands.get(commandName);
-        try {
-          await command.execute(senderId, args, pageAccessToken, sendMessage);
-        } catch (error) {
-          console.error(`Error executing command ${commandName}:`, error);
-          if (error.message) {
-            sendMessage(senderId, { text: error.message }, pageAccessToken);
-          } else {
-            sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
-          }
+    if (commands.has(commandName)) {
+      const command = commands.get(commandName);
+      try {
+        await command.execute(senderId, args, pageAccessToken, sendMessage);
+      } catch (error) {
+        console.error(`Error executing command ${commandName}:`, error);
+        if (error.message) {
+          sendMessage(senderId, { text: error.message }, pageAccessToken);
+        } else {
+          sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
         }
       }
       return;
     }
 
-    if (messageText) {
-      const aiCommand = commands.get('ai');
-      if (aiCommand) {
-        try {
-          await aiCommand.execute(senderId, messageText, pageAccessToken, sendMessage);
-        } catch (error) {
-          console.error('Error executing Ai command:', error);
-          if (error.message) {
-            sendMessage(senderId, { text: error.message }, pageAccessToken);
-          } else {
-            sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
-          }
+    const aiCommand = commands.get('ai');
+    if (aiCommand) {
+      try {
+        await aiCommand.execute(senderId, messageText, pageAccessToken, sendMessage);
+      } catch (error) {
+        console.error('Error executing Ai command:', error);
+        if (error.message) {
+          sendMessage(senderId, { text: error.message }, pageAccessToken);
+        } else {
+          sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
         }
       }
-    } else {
-      console.log('Received empty message');
     }
   } else if (event.message) {
     console.log('Received message without text');
