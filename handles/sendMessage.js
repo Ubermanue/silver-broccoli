@@ -1,6 +1,6 @@
 const request = require('request');
 
-const sendMessage = (senderId, message, pageAccessToken) => {
+const sendMessage = (senderId, message, pageAccessToken, quickReplies = []) => {
   if (!message || (!message.text && !message.attachment)) {
     console.error('Error: Message must provide valid text or attachment.');
     return;
@@ -11,6 +11,7 @@ const sendMessage = (senderId, message, pageAccessToken) => {
     message: {
       text: message.text || undefined,
       attachment: message.attachment || undefined,
+      quick_replies: quickReplies.length ? quickReplies : undefined,
     },
   };
 
