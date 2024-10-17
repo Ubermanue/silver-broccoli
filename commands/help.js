@@ -12,19 +12,27 @@ const commandCategories = {
 module.exports = {
   name: 'help',
   description: 'Show available commands',
-  usage: '-help',
+  usage: '-help <command name>',
   author: 'System',
-  
+
   execute(senderId, args, pageAccessToken, sendMessage) {
-    const helpMessage = buildHelpMessage();
-    sendMessage(senderId, { text: helpMessage }, pageAccessToken);
+    if (args.length > 0) {
+      // If a specific command name is provided, fetch its information
+      const commandName = args[0];
+      const commandInfo = fetchCommandInfo(commandName);
+      sendMessage(senderId, { text: commandInfo }, pageAccessToken);
+    } else {
+      // Otherwise, send the list of available commands
+      const helpMessage = buildHelpMessage();
+      sendMessage(senderId, { text: helpMessage }, pageAccessToken);
+    }
   }
 };
 
 // Function to build the help message
 function buildHelpMessage() {
   let helpMessage = `━━━━━━━━━━━━━━\n`;
-  helpMessage += `𝙰𝚟𝚊𝚒𝚕𝚊𝚋𝚕𝚎 𝙲𝚘𝚖𝚖𝚊𝚗𝚍𝚜:\n`;
+  helpMessage += `𝙰𝚟𝚊𝚒𝚕𝚊𝚋𝚕𝚎 𝙲𝚘𝚖𝚖𝚊𝚗𝚝𝚜:\n`;
   helpMessage += `╭─╼━━━━━━━━╾─╮\n`;
 
   for (const [category, commands] of Object.entries(commandCategories)) {
@@ -38,7 +46,7 @@ function buildHelpMessage() {
   helpMessage += `Chat -𝚑𝚎𝚕𝚙 <command name>\n`;
   helpMessage += `𝚃𝚘 𝚜𝚎𝚎 𝚑𝚘𝚠 𝚝𝚘 𝚞𝚜𝚎 \n`;
   helpMessage += `𝚊𝚟𝚊𝚒𝚕𝚊𝚋𝚕𝚎 𝚌𝚘𝚖𝚖𝚊𝚗𝚍𝚜.\n\n`;
-  helpMessage += `𝙴𝚡𝚊𝚖𝚙𝚕𝚎: -help gemini\n`;
+  helpMessage += `𝙴𝚡𝚊𝚖𝚙𝚕𝚎: -help ai\n`;
   helpMessage += `━━━━━━━━━━━━━━`;
 
   return helpMessage;
