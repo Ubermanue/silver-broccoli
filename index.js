@@ -1,4 +1,3 @@
-// index.js
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -94,34 +93,6 @@ fs.watch(COMMANDS_PATH, (eventType, filename) => {
     reloadMenuCommands();
   }
 });
-
-// Function to send quick replies
-async function sendQuickReplies(senderId) {
-  const commands = loadCommands();
-  const quickReplies = commands.map(command => ({
-    content_type: "text",
-    title: command.name,
-    payload: command.name,
-  }));
-
-  await sendMessage(senderId, {
-    quick_replies: quickReplies,
-  });
-}
-
-// Function to send messages
-async function sendMessage(senderId, message, pageAccessToken) {
-  try {
-    await axios.post(`https://graph.facebook.com/v21.0/me/messages?access_token=${pageAccessToken}`, {
-      recipient: { id: senderId },
-      message,
-    }, {
-      headers: { "Content-Type": "application/json" }
-    });
-  } catch (error) {
-    console.error("Error sending message:", error);
-  }
-}
 
 // Server initialization
 const PORT = process.env.PORT || 3000;
