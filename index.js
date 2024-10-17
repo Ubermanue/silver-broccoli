@@ -23,7 +23,7 @@ async function sendQuickReplies(senderId) {
   ];
 
   await sendMessage(senderId, {
-    text: "Tap Commands to see all available commands.",
+    text: "Tap "Commands" to see all available commands.",
     quick_replies: quickReplies,
   });
 }
