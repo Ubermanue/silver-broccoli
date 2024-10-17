@@ -76,7 +76,7 @@ module.exports = {
 
         // Check if no arguments were provided
         if (args.length === 0) {
-            const tutorialMessage = `${header}\nHow to use the gtranslate command:\n\n1. Specify a target language code (e.g., 'es' for Spanish).\n2. Enter the text you want to translate.\n\nExample: -gtranslate es Hello, how are you?\nResult: Hola, ¿cómo estás?\n\nTo view other supported languages, type -gtranslate language list.\n${footer}`;
+            const tutorialMessage = `${header}\nHow to use the gtranslate command:\n\n1. Specify a target language code (e.g., 'es' for Spanish).\n2. Enter the text you want to translate.\n\n𝐄𝐱𝐚𝐦𝐩𝐥𝐞: -gtranslate es Hello, how are you?\n𝐑𝐞𝐬𝐮𝐥𝐭: Hola, ¿cómo estás?\n\nTo view other supported languages\ntype -𝐠𝐭𝐫𝐚𝐧𝐬𝐥𝐚𝐭𝐞 𝐥𝐚𝐧𝐠𝐮𝐚𝐠𝐞 𝐥𝐢𝐬𝐭.\n${footer}`;
             return await sendMessage(senderId, { text: tutorialMessage }, pageAccessToken);
         }
 
@@ -86,7 +86,7 @@ module.exports = {
                 .map(([code, name]) => `${code}: ${name}`)
                 .join('\n');
 
-            const languageMessage = `${header}\nSupported languages:\n${languageList}\n${footer}`;
+            const languageMessage = `${header}\n𝐒𝐮𝐩𝐩𝐨𝐫𝐭𝐞𝐝 𝐋𝐚𝐧𝐠𝐮𝐚𝐠𝐞𝐬:\n\n${languageList}\n${footer}`;
             return await sendMessage(senderId, { text: languageMessage }, pageAccessToken);
         }
 
@@ -110,7 +110,7 @@ module.exports = {
             const fromName = langNames[langFrom] || langFrom;
             const toName = langNames[targetLang] || targetLang;
 
-            const formattedMessage = `${header}\nTranslated from ${fromName} to ${toName}\n\n🪧 Translated text:\n▫️${translation}\n${footer}`;
+            const formattedMessage = `${header}\nTranslated from\n${fromName} to ${toName}\n\n🪧 Translated text:\n▫️${translation}\n${footer}`;
 
             // Send the translated message
             await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
