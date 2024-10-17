@@ -1,8 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const { sendMessage } = require('./sendMessage');
-const { sendQuickReplies } = require('./sendQuickReplies');
-const { sendCommands } = require('./sendCommands');
 
 const commands = new Map();
 const prefix = '-';
@@ -33,41 +31,41 @@ async function handleMessage(event, pageAccessToken) {
       const words = messageText.split(' ');
       commandName = words.shift().toLowerCase();
       args = words;
-if (commands.has(commandName)) {
-  const command = commands.get(commandName);
-  try {
-    await command.execute(senderId, args, pageAccessToken, sendMessage);
-  } catch (error) {
-    console.error(`Error executing command ${commandName}:`, error);
-    if (error.message) {
-      sendMessage(senderId, { text: error.message }, pageAccessToken);
-    } else {
-      sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
     }
-  }
-  return;
-}
 
-if (messageText === 'commands') {
-  await sendQuickReplies(senderId, pageAccessToken);
-  return;
-}
-
-if (messageText === 'commands list') {
-  await sendCommands(senderId, pageAccessToken);
-  return;
-}
-
-const aiCommand = commands.get('ai');
-if (aiCommand) {
-  try {
-    await aiCommand.execute(senderId, messageText, pageAccessToken, sendMessage);
-  } catch (error) {
-    console.error('Error executing Ai command:', error);
-    if (error.message) {
-      sendMessage(senderId, { text: error.message }, pageAccessToken);
-    } else {
-      sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
+    if (commands.has(commandName)) {
+      const command = commands.get(commandName);
+      try {
+        await command.execute(senderId, args, pageAccessToken, sendMessage);
+      } catch (error) {
+        console.error(`Error executing command ${commandName}:`, error);
+        if (error.message) {
+          sendMessage(senderId, { text: error.message }, pageAccessToken);
+        } else {
+          sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
+        }
+      }
+      return;
     }
+
+    const aiCommand = commands.get('ai');
+    if (aiCommand) {
+      try {
+        await aiCommand.execute(senderId, messageText, pageAccessToken, sendMessage);
+      } catch (error) {
+        console.error('Error executing Ai command:', error);
+        if (error.message) {
+          sendMessage(senderId, { text: error.message }, pageAccessToken);
+        } else {
+          sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
+        }
+      }
+    }
+  } else if (event.message) {
+    console.log('Received message without text');
+  } else {
+    console.log('Received event without message');
   }
 }
+
+module.exports = { handleMessage };
