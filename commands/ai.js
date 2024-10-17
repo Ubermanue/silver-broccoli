@@ -35,7 +35,7 @@ module.exports = {
     try {
       console.log("User Message:", messageText);
 
-      // Automatically add "short direct answer" to the user's prompt
+      // Automatically add ", direct answer" to the user's prompt
       const modifiedPrompt = `${messageText}, short direct answer.`;
 
       const userHistory = messageHistory.get(senderId) || [];
