@@ -12,32 +12,6 @@ const VERIFY_TOKEN = 'pagebot';
 const PAGE_ACCESS_TOKEN = fs.readFileSync('token.txt', 'utf8').trim();
 const COMMANDS_PATH = path.join(__dirname, 'commands');
 
-// Function to send quick replies
-async function sendQuickReplies(senderId) {
-  const quickReplies = [
-    {
-      content_type: "text",
-      title: "Commands",
-      payload: "SHOW_COMMANDS",
-    },
-  ];
-
-  await sendMessage(senderId, {
-    text: "Tap Commands to see all available commands.",
-    quick_replies: quickReplies,
-  });
-}
-
-// Function to send a message
-async function sendMessage(senderId, message) {
-  await axios.post(`https://graph.facebook.com/v11.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, {
-    recipient: { id: senderId },
-    message,
-  }, {
-    headers: { "Content-Type": "application/json" }
-  });
-}
-
 // Webhook verification
 app.get('/webhook', (req, res) => {
   const { 'hub.mode': mode, 'hub.verify_token': token, 'hub.challenge': challenge } = req.query;
@@ -59,12 +33,7 @@ app.post('/webhook', (req, res) => {
     body.entry?.forEach(entry => {
       entry.messaging?.forEach(event => {
         if (event.message) {
-          if (event.message.text === 'Commands') {
-            // Send the command buttons if "Commands" is tapped
-            sendCommandButtons(event.sender.id);
-          } else {
-            handleMessage(event, PAGE_ACCESS_TOKEN);
-          }
+          handleMessage(event, PAGE_ACCESS_TOKEN);
         } else if (event.postback) {
           handlePostback(event, PAGE_ACCESS_TOKEN);
         }
@@ -76,27 +45,6 @@ app.post('/webhook', (req, res) => {
 
   res.sendStatus(404);
 });
-
-// Function to send command buttons
-async function sendCommandButtons(senderId) {
-  const commands = loadCommands();
-  const buttons = commands.map(command => ({
-    type: "postback",
-    title: command.name,
-    payload: command.name,
-  }));
-
-  await sendMessage(senderId, {
-    attachment: {
-      type: "template",
-      payload: {
-        template_type: "button",
-        text: "",
-        buttons,
-      },
-    },
-  });
-}
 
 // Load all command files from the "commands" directory and add a hyphen to the name
 const loadCommands = () => fs.readdirSync(COMMANDS_PATH)
