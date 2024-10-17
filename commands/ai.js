@@ -1,4 +1,9 @@
 const Groq = require('groq-sdk');
+const fs = require('fs');
+const { sendMessage } = require('../handles/sendMessage');
+
+// Load the access token from a file
+const token = fs.readFileSync('token.txt', 'utf8');
 
 // Primary and fallback API keys
 const API_KEYS = {
@@ -11,8 +16,6 @@ let groq = new Groq({ apiKey: API_KEYS.primary });
 
 const messageHistory = new Map();
 const MAX_MESSAGE_LENGTH = 2000;
-
-const transformBoldContent = (text) => text.replace(/\*\*(.*?)\*\*/g, (_, boldText) => boldText);
 
 const wrapResponseMessage = (text) => `
 (⁠◍⁠•⁠ᴗ⁠•⁠◍⁠) | 𝙼𝚘𝚌𝚑𝚊 𝙰𝚒
@@ -37,29 +40,36 @@ const fetchChatCompletion = async (userHistory) => {
   });
 };
 
-const handleApiError = (error, senderId, pageAccessToken, sendMessage, retryCallback) => {
+const handleApiError = (error, senderId, pageAccessToken) => {
   console.error('Error communicating with Groq:', error.message);
-
+  
   if (error.message.includes('API limit') || error.message.includes('cooldown')) {
     console.log('Switching to fallback API key...');
     switchApiKey();
-    retryCallback();
-  } else {
-    sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
+    return true; // Indicates the need for a retry
   }
+  
+  sendMessage(senderId, { text: wrapResponseMessage("An error occurred while trying to reach the API.") }, pageAccessToken);
+  return false; // No retry
 };
 
 module.exports = {
   name: 'ai',
-  description: 'Interact with llama3',
+  description: 'Interact with llama3 Ai.',
   usage: '-ai <question>',
   author: 'Nics/Coffee',
 
-  async execute(senderId, messageText, pageAccessToken, sendMessage) {
-    try {
-      console.log("User Message:", messageText);
+  async execute(senderId, args) {
+    const pageAccessToken = token;
 
-      const modifiedPrompt = `${messageText.trim()}, short direct answer.`;
+    // Set a default query if none is provided
+    const input = (args.join(' ') || 'hi').trim();
+    
+    // Automatically add "short direct answer" to the user's prompt
+    const modifiedPrompt = `${input}, short direct answer.`;
+
+    try {
+      console.log("User Message:", modifiedPrompt);
 
       const userHistory = messageHistory.get(senderId) ?? [
         { role: 'system', content: 'Your name is Mocha AI. You can answer any questions asked.' },
@@ -83,14 +93,15 @@ module.exports = {
         userHistory.push({ role: 'assistant', content: responseMessage });
         messageHistory.set(senderId, userHistory);
 
-        sendMessage(senderId, { text: wrapResponseMessage(transformBoldContent(responseMessage)) }, pageAccessToken);
+        sendMessage(senderId, { text: wrapResponseMessage(responseMessage) }, pageAccessToken);
       } else {
         throw new Error("Received empty response from Groq.");
       }
     } catch (error) {
-      handleApiError(error, senderId, pageAccessToken, sendMessage, () => {
-        this.execute(senderId, messageText, pageAccessToken, sendMessage);
-      });
+      if (handleApiError(error, senderId, pageAccessToken)) {
+        // Retry with fallback API key
+        return this.execute(senderId, args);
+      }
     }
   }
 };
