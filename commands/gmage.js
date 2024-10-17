@@ -12,7 +12,7 @@ const MAX_IMAGES = 9;
 module.exports = {
   name: 'gmage',
   description: 'Search Google Images.',
-  usage: '-gmage <search_query> -number',
+  usage: '-gmage <search_query>',
   author: 'coffee',
 
   async execute(senderId, args) {
@@ -20,21 +20,18 @@ module.exports = {
       return sendMessage(senderId, { text: '📷 | Follow this format:\n-gmage naruto uzumaki' }, pageAccessToken);
     }
 
-    // Extract search query and image count from args
-    const [searchQuery, imageCount] = parseArgs(args);
-    const count = Math.max(1, Math.min(imageCount || 5, MAX_IMAGES)); // Default to 5, limit to MAX_IMAGES
+    // Get the search query from the arguments
+    const searchQuery = args.join(' ').trim();
 
     try {
-      const imageUrls = await fetchImageUrls(searchQuery, count);
+      const imageUrls = await fetchImageUrls(searchQuery, MAX_IMAGES);
 
       if (imageUrls.length === 0) {
         return sendMessage(senderId, { text: `📷 | No images found for "${searchQuery}".` }, pageAccessToken);
       }
 
-      // Send each image as an attachment in separate messages
-      for (const url of imageUrls) {
-        await sendImage(senderId, url, pageAccessToken);
-      }
+      // Send all images as attachments in one message
+      await sendImages(senderId, imageUrls, pageAccessToken);
 
     } catch (error) {
       console.error('Error:', error);
@@ -43,14 +40,6 @@ module.exports = {
   }
 };
 
-// Parse arguments for search query and image count
-function parseArgs(args) {
-  const match = args.join(' ').match(/(.+?)(?:\s+-(\d+))?$/);
-  const searchQuery = match ? match[1].trim() : '';
-  const imageCount = match && match[2] ? parseInt(match[2], 10) : undefined;
-  return [searchQuery, imageCount];
-}
-
 // Fetch image URLs from Google Custom Search API
 async function fetchImageUrls(query, count) {
   const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}&searchType=image`;
@@ -58,11 +47,12 @@ async function fetchImageUrls(query, count) {
   return data.items ? data.items.slice(0, count).map(item => item.link) : [];
 }
 
-// Send image as an attachment
-async function sendImage(senderId, url, pageAccessToken) {
-  const attachment = {
+// Send multiple images as attachments
+async function sendImages(senderId, imageUrls, pageAccessToken) {
+  const attachments = imageUrls.map(url => ({
     type: 'image',
     payload: { url }
-  };
-  return sendMessage(senderId, { attachment }, pageAccessToken);
+  }));
+
+  return sendMessage(senderId, { attachment: attachments }, pageAccessToken);
 }
