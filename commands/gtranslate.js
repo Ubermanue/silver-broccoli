@@ -70,6 +70,7 @@ const supportedLangs = Object.keys(langNames);
 module.exports = {
     name: 'gtranslate',
     description: 'Translate text with Google Translate.',
+    usage: '-gtranslate',
     author: 'Coffee',
 
     async execute(senderId, args) {
