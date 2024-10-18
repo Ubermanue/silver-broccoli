@@ -35,19 +35,20 @@ const handleSpotifySearch = async (senderId, songName, pageAccessToken) => {
       const trackImage = track.image;
       const downloadUrl = track.download;
 
-      // Send track details
+      // Send track details as the initial message
       const message = `🎶 | Spotify Track Found\n・───────────・\nTrack: ${trackName}\n🔗 [Listen on Spotify](${trackLink})\n・──── >ᴗ< ────・`;
+      await sendMessage(senderId, { text: message }, pageAccessToken);
 
-      if (trackImage && downloadUrl) {
+      // Send the image attachment if available
+      if (trackImage) {
         const imagePayload = getAttachmentPayload('image', trackImage);
-        const audioPayload = getAttachmentPayload('audio', downloadUrl);
+        await sendMessage(senderId, { attachment: imagePayload }, pageAccessToken);
+      }
 
-        await sendMessage(senderId, {
-          text: message,
-          attachment: [imagePayload, audioPayload],
-        }, pageAccessToken);
-      } else {
-        await sendMessage(senderId, { text: message }, pageAccessToken);
+      // Send the audio attachment if available
+      if (downloadUrl) {
+        const audioPayload = getAttachmentPayload('audio', downloadUrl);
+        await sendMessage(senderId, { attachment: audioPayload }, pageAccessToken);
       }
     } else {
       await sendError(senderId, 'Error: No tracks found. Please try a different song name.', pageAccessToken);
