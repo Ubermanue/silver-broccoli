@@ -18,7 +18,7 @@ module.exports = {
       const response = await axios.get(`https://www.geo-sevent-tooldph.site/api/cohere?prompt=${encodeURIComponent(modifiedPrompt)}`);
       const data = response.data;
 
-      const formattedMessage = `・───────────・\n${data.response.message}\n・──── >ᴗ< ────・`;
+      const formattedMessage = `🗨️ | 𝙲𝚘𝚑𝚎𝚛𝚎 𝙰𝚒\n・───────────・\n${data.response.message}\n・──── >ᴗ< ────・`;
 
       await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
     } catch (error) {
