@@ -3,12 +3,13 @@ const { sendMessage } = require('../handles/sendMessage');
 const fs = require('fs');
 
 const token = fs.readFileSync('token.txt', 'utf8');
+const MAX_MESSAGE_LENGTH = 2000;
 
 module.exports = {
   name: 'cohere',
   description: 'Interact with Cohere AI',
-  usage: '-cohere [question]',
   author: 'Coffee',
+  usage: 'cohere [question/message]',
 
   async execute(senderId, args) {
     const pageAccessToken = token;
@@ -17,16 +18,13 @@ module.exports = {
     try {
       const response = await axios.get(`https://hiroshi-api.onrender.com/ai/cohere?ask=${encodeURIComponent(input)}`);
       const data = response.data;
-      const messageContent = data.response || 'No response available.';
-      
-      // Truncate message if it exceeds 2000 characters
-      const truncatedMessage = messageContent.length > 2000 
-        ? `${messageContent.substring(0, 1997)}...` 
-        : messageContent;
+      const responseText = data.response || 'No response available.';
+      const formattedMessage = `💬 | 𝙲𝚘𝚑𝚎𝚛𝚎 𝙰𝚒\n・───────────・\n${responseText}\n・──── >ᴗ< ────・`;
 
-      const formattedMessage = `💬 | 𝙲𝚘𝚑𝚎𝚛𝚎 𝙰𝚒\n・───────────・\n${truncatedMessage}\n・──── >ᴗ< ────・`;
+      // Truncate the message if it exceeds the maximum allowed length
+      const truncatedMessage = formattedMessage.substring(0, MAX_MESSAGE_LENGTH);
 
-      await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
+      await sendMessage(senderId, { text: truncatedMessage }, pageAccessToken);
     } catch (error) {
       console.error('Error:', error);
       await sendMessage(senderId, { text: 'Error: Unexpected error.' }, pageAccessToken);
