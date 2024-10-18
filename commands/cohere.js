@@ -6,17 +6,17 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'cohere',
-  description: 'Cohere-based response command',
+  description: 'Interact with Cohere AI',
   author: 'Coffee',
 
   async execute(senderId, args) {
     const pageAccessToken = token;
-    const input = (args.join(' ') || 'Hello').trim();
+    const input = (args.join(' ') || 'hello').trim();
 
     try {
-      const response = await axios.get(`https://www.geo-sevent-tooldph.site/api/cohere?prompt=${encodeURIComponent(input)}`);
+      const response = await axios.get(`https://hiroshi-api.onrender.com/ai/cohere?ask=${encodeURIComponent(input)}`);
       const data = response.data;
-      const formattedMessage = `💬 | 𝙲𝚘𝚑𝚎𝚛𝚎 𝙰𝚒\n・───────────・\n${data.response?.message || 'No response available.'}\n・──── >ᴗ< ────・`;
+      const formattedMessage = `💬 | 𝙲𝚘𝚑𝚎𝚛𝚎 𝙰𝚒\n・───────────・\n${data.response || 'No response available.'}\n・──── >ᴗ< ────・`;
 
       await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
     } catch (error) {
