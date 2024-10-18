@@ -32,13 +32,12 @@ module.exports = {
         throw new Error(data.error || 'An error occurred while retrieving the response.');
       }
 
-      const formattedMessage = `・───────────・\n${data.result}\n・──── >ᴗ< ────・`;
+      const formattedMessage = `🗨️ | 𝙻𝚕𝚊𝚖𝚊 3\n・───────────・\n${data.result}\n・──── >ᴗ< ────・`;
 
       // Send the formatted response back to the user
       await sendMessage(senderId, { text: formattedMessage }, pageAccessToken);
     } catch (error) {
       console.error('Error:', error);
-
       // Send an error message if something goes wrong
       await sendMessage(senderId, { text: 'Error: An unexpected error occurred. Please try again later.' }, pageAccessToken);
     }
