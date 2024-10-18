@@ -36,7 +36,7 @@ const handleSpotifySearch = async (senderId, songName, pageAccessToken) => {
       const downloadUrl = track.download;
 
       // Send track details as the initial message
-      const message = `🎶 | Spotify Track Found\n・───────────・\nTrack: ${trackName}\n🔗 [Listen on Spotify](${trackLink})\n・──── >ᴗ< ────・`;
+      const message = `🎶 | Spotify Track Found\n・───────────・\nTrack: ${trackName}\n🔗 [Listen on Spotify]\n${trackLink}\n・──── >ᴗ< ────・`;
       await sendMessage(senderId, { text: message }, pageAccessToken);
 
       // Send the image attachment if available
