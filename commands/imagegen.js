@@ -2,14 +2,11 @@ const axios = require('axios');
 const fs = require('fs');
 
 async function generateImage(prompt) {
-  const token = fs.readFileSync('token.txt', 'utf8');
-
+  const token = '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';
   const url = "https://api-inference.huggingface.co/models/davisbro/half_illustration";
   const headers = {
-    "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Mobile Safari/537.36",
-    Referer: `https://huggingface.co/davisbro/half_illustration?text=${encodeURIComponent(prompt)}`,
-    "Content-Type": "application/json",
     "Authorization": `Bearer ${token}`,
+    "Content-Type": "application/json"
   };
 
   const body = {
@@ -30,6 +27,7 @@ async function generateImage(prompt) {
     return imagePath;
   } catch (error) {
     console.error("Error generating image:", error.message);
+    console.error("Error response:", error.response.data);
     return null;
   }
 }
