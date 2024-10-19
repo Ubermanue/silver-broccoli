@@ -1,54 +1,57 @@
 const axios = require('axios');
-const fs = require('fs');
 const { sendMessage } = require('../handles/sendMessage');
+const fs = require('fs');
 
-const tokenPath = './token.txt';
-const pageAccessToken = fs.readFileSync(tokenPath, 'utf8').trim();
+const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'pinterest',
-  description: 'Search Pinterest for images.',
-  usage: '-pinterest prompt -number',
+  description: 'Fetch Pinterest images based on a keyword',
   author: 'coffee',
+  usage: 'pinterest <keyword> <number (1-10)>',
 
   async execute(senderId, args) {
-    // Ensure args is defined and is an array, default to an empty string if not
-    if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(senderId, { text: 'Please provide a search query.' }, pageAccessToken);
-      return;
+    const pageAccessToken = token;
+
+    if (!args.length) {
+      return await sendMessage(senderId, {
+        text: '📷 | Please use this format:\npinterest cat -5'
+      }, pageAccessToken);
     }
 
-    // Handle the case where user provides a search query and optional number of images
-    const match = args.join(' ').match(/(.+)-(\d+)$/);
-    const searchQuery = match ? match[1].trim() : args.join(' ');
-    let imageCount = match ? parseInt(match[2], 10) : 5;
+    if (args.length < 2) {
+      return await sendError(senderId, 'Error: Please provide a search term and a number (1-10).', pageAccessToken);
+    }
 
-    // Ensure the user-requested count is within 1 to 20
-    imageCount = Math.max(1, Math.min(imageCount, 20));
+    const searchTerm = args.slice(0, -1).join(' ').trim();
+    const numImages = parseInt(args.at(-1), 10);
+
+    if (isNaN(numImages) || numImages < 1) {
+      return await sendError(senderId, 'Error: Invalid number of images. Please provide a number between 1 and 10.', pageAccessToken);
+    }
+
+    const imageCount = Math.min(numImages, 10);
+    const apiUrl = `https://pin-kshitiz.vercel.app/pin?search=${encodeURIComponent(searchTerm)}`;
 
     try {
-      const { data } = await axios.get(`https://hiroshi-api.onrender.com/image/pinterest?search=${encodeURIComponent(searchQuery)}`);
+      const { data } = await axios.get(apiUrl);
+      const images = data?.result || [];
 
-      // Limit the number of images to the user-requested count
-      const selectedImages = data.data.slice(0, imageCount);
-
-      if (selectedImages.length === 0) {
-        await sendMessage(senderId, { text: `No images found for "${searchQuery}".` }, pageAccessToken);
-        return;
+      if (images.length) {
+        const selectedImages = images.slice(0, imageCount);
+        for (const imageUrl of selectedImages) {
+          await sendMessage(senderId, { image: { url: imageUrl } }, pageAccessToken);
+        }
+      } else {
+        await sendError(senderId, 'Error: No images found for the given keyword.', pageAccessToken);
       }
-
-      // Send each image in a separate message
-      for (const url of selectedImages) {
-        const attachment = {
-          type: 'image',
-          payload: { url }
-        };
-        await sendMessage(senderId, { attachment }, pageAccessToken);
-      }
-
     } catch (error) {
-      console.error('Error:', error);
-      await sendMessage(senderId, { text: 'Error: Could not fetch images.' }, pageAccessToken);
+      console.error('Error fetching Pinterest images:', error);
+      await sendError(senderId, 'Error: Unable to fetch images. Please try again later.', pageAccessToken);
     }
-  }
+  },
+};
+
+const sendError = async (senderId, errorMessage, pageAccessToken) => {
+  await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
 };
