@@ -18,8 +18,8 @@ module.exports = {
       const { data } = await axios.get(apiUrl);
 
       if (data.status && data.videoDownloadLink) {
-        const { title = 'No Title', username = 'Unknown User', videoDownloadLink } = data;
-        const detailsMessage = { text: `Title: ${title}\nUsername: ${username}` };
+        const { title = 'No Title', videoDownloadLink } = data;
+        const detailsMessage = { text: `Title: ${title}` };
         const videoMessage = {
           attachment: {
             type: 'video',
@@ -27,11 +27,9 @@ module.exports = {
           }
         };
 
-        // Send both messages at the same time
-        await Promise.all([
-          sendMessage(senderId, detailsMessage, pageAccessToken),
-          sendMessage(senderId, videoMessage, pageAccessToken)
-        ]);
+        // Send the details first and then the video immediately after
+        await sendMessage(senderId, detailsMessage, pageAccessToken);
+        await sendMessage(senderId, videoMessage, pageAccessToken);
       } else {
         sendError(senderId, 'Error: Unable to fetch video details.', pageAccessToken);
       }
