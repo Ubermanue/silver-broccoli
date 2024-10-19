@@ -31,12 +31,15 @@ module.exports = {
       // Create a buffer from the response data
       const imageBuffer = Buffer.from(response.data, 'binary');
 
+      // Convert the buffer to a Base64 string
+      const base64Image = imageBuffer.toString('base64');
+
       // Send the image as an attachment
       await sendMessage(senderId, { 
         attachment: { 
           type: 'image', 
           payload: { 
-            url: `data:image/jpeg;base64,${imageBuffer.toString('base64')}` // Convert to base64
+            url: `data:image/jpeg;base64,${base64Image}` // Convert to base64
           } 
         } 
       }, pageAccessToken);
