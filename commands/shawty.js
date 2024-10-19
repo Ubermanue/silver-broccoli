@@ -6,7 +6,8 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'shawty',
-  description: 'Fetch a TikTok video and send the details and video',
+  description: 'Fetch a TikTok video.',
+  usage: '-shawty',
   author: 'coffee',
 
   execute: async (senderId) => {
@@ -27,9 +28,10 @@ module.exports = {
           }
         };
 
-        // Send the details first and then the video immediately after
-        await sendMessage(senderId, detailsMessage, pageAccessToken);
-        await sendMessage(senderId, videoMessage, pageAccessToken);
+        await Promise.all([
+          sendMessage(senderId, detailsMessage, pageAccessToken),
+          sendMessage(senderId, videoMessage, pageAccessToken)
+        ]);
       } else {
         sendError(senderId, 'Error: Unable to fetch video details.', pageAccessToken);
       }
