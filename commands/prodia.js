@@ -1,34 +1,56 @@
-const { createProdia } = require('prodia');
+const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
+const fs = require('fs');
+const { createProdia } = require('prodia');
+
+const token = fs.readFileSync('token.txt', 'utf8');
+const prodiaApiKey = '79fa9d49-0f1e-4e21-a2c2-92891f2833f1';
 
 const prodia = createProdia({
-  apiKey: '79fa9d49-0f1e-4e21-a2c2-92891f2833f1',
+  apiKey: prodiaApiKey,
 });
 
 module.exports = {
   name: 'prodia',
-  description: 'Generate images via Prodia using a prompt',
-  usage: '-prodia <prompt>',
+  description: 'Generate an image using Prodia API',
+  usage: 'prodia <prompt>',
   author: 'coffee',
-  async execute(senderId, args, pageAccessToken) {
+
+  async execute(senderId, args) {
+    const pageAccessToken = token;
+
     if (!Array.isArray(args) || args.length === 0) {
-      return sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
+      return await sendError(senderId, 'Error: Missing input!', pageAccessToken);
     }
 
-    const prompt = args.join(' ');
+    const input = args.join(' ').trim();
 
     try {
-      const job = await prodia.generate({ prompt });
+      const job = await prodia.generate({
+        prompt: input,
+      });
+
       const { imageUrl, status } = await prodia.wait(job);
 
-      if (status === 'success' && imageUrl) {
-        return sendMessage(senderId, { attachment: { type: 'image', payload: { url: imageUrl } } }, pageAccessToken);
-      }
+      if (status === 'completed') {
+        const payload = {
+          type: 'image',
+          payload: {
+            url: imageUrl,
+          },
+        };
 
-      sendMessage(senderId, { text: 'Error: Image generation failed or no image URL returned.' }, pageAccessToken);
+        await sendMessage(senderId, { attachment: payload }, pageAccessToken);
+      } else {
+        await sendError(senderId, 'Error: Unable to generate image.', pageAccessToken);
+      }
     } catch (error) {
-      console.error('Error:', error.message);
-      sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
+      console.error('Error generating image:', error);
+      await sendError(senderId, 'Error: Unexpected error occurred while generating the image.', pageAccessToken);
     }
-  }
+  },
+};
+
+const sendError = async (senderId, errorMessage, pageAccessToken) => {
+  await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
 };
