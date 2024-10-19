@@ -6,55 +6,39 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'pinterest',
-  description: 'Fetch Pinterest images based on a keyword',
+  description: 'Fetch images from Pinterest',
   author: 'coffee',
-  usage: 'pinterest <keyword> <number (1-10)>',
+  usage: 'pinterest <search term> <number of images (1-10)>',
 
   async execute(senderId, args) {
     const pageAccessToken = token;
 
-    if (!args.length) {
-      return await sendMessage(senderId, {
-        text: '📷 | Please use this format:\npinterest cat -5'
-      }, pageAccessToken);
+    if (!args || args.length < 1) {
+      return await sendMessage(senderId, { text: '📷 | Please use this format:\npinterest <search term> <number of images (1-10)>' }, pageAccessToken);
     }
 
-    if (args.length < 2) {
-      return await sendError(senderId, 'Error: Please provide a search term and a number (1-10).', pageAccessToken);
-    }
-
-    const searchTerm = args.slice(0, -1).join(' ').trim();
-    let numImages = parseInt(args.at(-1), 10);
-
-    if (numImages < 0) {
-      numImages = Math.abs(numImages);
-    }
-
-    if (isNaN(numImages) || numImages < 1 || numImages > 10) {
-      return await sendError(senderId, 'Error: Please provide a number between 1 and 10.', pageAccessToken);
-    }
+    const searchTerm = args[0];
+    let numImages = parseInt(args[1]) || 1;
+    numImages = Math.abs(numImages); // Use absolute value
+    numImages = Math.min(numImages, 10); // Limit to a maximum of 10
+    numImages = Math.max(numImages, 1); // Ensure at least 1
 
     const apiUrl = `https://pin-kshitiz.vercel.app/pin?search=${encodeURIComponent(searchTerm)}`;
 
     try {
       const { data } = await axios.get(apiUrl);
-      const images = data?.result || [];
+      const images = data.result.slice(0, numImages);
 
-      if (images.length) {
-        const selectedImages = images.slice(0, numImages);
-        for (const imageUrl of selectedImages) {
-          await sendMessage(senderId, { image: { url: imageUrl } }, pageAccessToken);
+      if (images.length > 0) {
+        for (const imageUrl of images) {
+          await sendMessage(senderId, { attachment: { type: 'image', payload: { url: imageUrl } } }, pageAccessToken);
         }
       } else {
-        await sendError(senderId, 'Error: No images found for the given keyword.', pageAccessToken);
+        await sendMessage(senderId, { text: 'No images found for your search.' }, pageAccessToken);
       }
     } catch (error) {
-      console.error('Error fetching Pinterest images:', error);
-      await sendError(senderId, 'Error: Unable to fetch images. Please try again later.', pageAccessToken);
+      console.error('Error fetching images:', error);
+      await sendMessage(senderId, { text: 'Error: Unable to fetch images from Pinterest.' }, pageAccessToken);
     }
   },
-};
-
-const sendError = async (senderId, errorMessage, pageAccessToken) => {
-  await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
 };
