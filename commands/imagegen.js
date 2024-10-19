@@ -27,6 +27,7 @@ module.exports = {
         inputs: prompt,
       };
 
+      // Make a single request to the Hugging Face API
       const response = await axios.post(url, body, {
         headers: headers,
         responseType: 'arraybuffer',
@@ -41,10 +42,15 @@ module.exports = {
         { attachment: { type: 'image', payload: { url: `file://${imagePath}` } } },
         pageAccessToken
       );
+      console.log('Image sent successfully');
 
     } catch (error) {
       console.error('Error:', error.message);
-      await sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
+      if (error.response && error.response.status === 429) {
+        await sendMessage(senderId, { text: 'Rate limit exceeded. Please try again later.' }, pageAccessToken);
+      } else {
+        await sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
+      }
     }
   },
 };
