@@ -5,7 +5,7 @@ const fs = require('fs');
 const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
-  name: 'trial',
+  name: 'lyrics',
   description: 'Fetch song lyrics',
   usage: '-lyrics <song name>',
   author: 'Your Name',
