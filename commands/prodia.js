@@ -1,6 +1,6 @@
 const { createProdia } = require('prodia');
 const { sendMessage } = require('../handles/sendMessage');
-const axios = require('axios');
+const fetch = require('node-fetch'); // Make sure to install node-fetch if not already installed
 
 const prodia = createProdia({
   apiKey: '79fa9d49-0f1e-4e21-a2c2-92891f2833f1',
@@ -20,24 +20,32 @@ module.exports = {
     const prompt = args.join(' ');
 
     try {
-      const apiUrl = `https://api.prodia.com/v1/generate?prompt=${encodeURIComponent(prompt)}&api_key=${prodia.apiKey}`;
+      const response = await prodia.generate({ prompt });
+      if (!response || !response.imageUrl) {
+        throw new Error('No image generated.');
+      }
 
-      const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
-      const imageBuffer = Buffer.from(response.data, 'binary');
+      const imageUrl = response.imageUrl;
 
-      const formData = new FormData();
-      formData.append('attachment', imageBuffer, 'image.png');
+      // Fetch the image data
+      const imageResponse = await fetch(imageUrl);
+      if (!imageResponse.ok) {
+        throw new Error('Failed to fetch image from Prodia API.');
+      }
 
-      const options = {
-        method: 'POST',
-        url: `https://graph.facebook.com/v13.0/me/messages?access_token=${pageAccessToken}`,
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      const imageBuffer = await imageResponse.buffer();
+
+      // Now you can upload this image buffer to Facebook
+      await sendMessage(senderId, {
+        attachment: {
+          type: 'image',
+          payload: {
+            is_reusable: true, // Make the image reusable
+            url: imageUrl // Use the fetched URL instead
+          },
         },
-        data: formData,
-      };
-
-      await axios(options);
+      }, pageAccessToken);
+      
     } catch (error) {
       console.error('Error:', error);
       await sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
