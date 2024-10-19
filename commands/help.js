@@ -6,7 +6,7 @@ const commandCategories = {
   "📖 | 𝙴𝚍𝚞𝚌𝚊𝚝𝚒𝚘𝚗": ['ai', 'blackbox', 'chatgpt', 'cohere', 'gemini', 'llama', 'mixtral'],
   "🖼 | 𝙸𝚖𝚊𝚐𝚎": ['gmage', 'imagine', 'pinterest'],
   "🎧 | 𝙼𝚞𝚜𝚒𝚌": ['audio', 'lyrics', 'spotify'],
-  "👥 | 𝙾𝚝𝚑𝚎𝚛𝚜": ['alldl', 'font', 'gtranslate', 'help']
+  "👥 | 𝙾𝚝𝚑𝚎𝚛𝚜": ['alldl', 'font', 'gtranslate', 'help', 'shawty']
 };
 
 module.exports = {
