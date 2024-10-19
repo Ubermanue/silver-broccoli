@@ -1,63 +1,42 @@
-const fetch = require('node-fetch');
+const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
+const fs = require('fs');
 
-async function query(data) {
-    const token = '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';
-    const response = await fetch(
-        "https://api-inference.huggingface.co/models/Shakker-Labs/FLUX.1-dev-LoRA-One-Click-Creative-Template",
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify(data),
-        }
-    );
-
-    if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-    }
-
-    const result = await response.blob();
-    return result;
-}
+const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
-    name: 'imagegen',
-    description: 'Generate images using Hugging Face API',
-    usage: '-imagegen <prompt>',
-    author: 'coffee',
-    async execute(senderId, args, pageAccessToken) {
-        if (!args || !Array.isArray(args) || args.length === 0) {
-            await sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
-            return;
-        }
+  name: 'imagegen',
+  description: 'Generate an image from a text prompt using FLUX',
+  author: 'coffee',
 
-        const prompt = args.join(' ');
+  async execute(senderId, args) {
+    const pageAccessToken = token;
 
-        try {
-            const imageBlob = await query({ "inputs": prompt });
-
-            // Convert blob to base64
-            const arrayBuffer = await imageBlob.arrayBuffer();
-            const base64Image = Buffer.from(arrayBuffer).toString('base64');
-            const imageUrl = `data:${imageBlob.type};base64,${base64Image}`;
-
-            // Send the image as an attachment
-            await sendMessage(senderId, {
-                attachment: {
-                    type: 'image',
-                    payload: {
-                        url: imageUrl,
-                        is_reusable: true
-                    }
-                }
-            }, pageAccessToken);
-
-        } catch (error) {
-            console.error('Error:', error);
-            await sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
-        }
+    if (!Array.isArray(args) || args.length === 0) {
+      return await sendError(senderId, 'Error: Missing input!', pageAccessToken);
     }
+
+    const input = args.join(' ').trim();
+    const apiUrl = "https://api-inference.huggingface.co/models/alimama-creative/FLUX.1-Turbo-Alpha";
+
+    try {
+      const response = await axios.post(apiUrl, { inputs: input }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
+      });
+
+      const imageUrl = response.data.url; // Adjust based on how the API returns the image URL
+
+      await sendMessage(senderId, { attachment: { type: 'image', payload: { url: imageUrl } } }, pageAccessToken);
+    } catch (error) {
+      console.error('Error generating image:', error);
+      await sendError(senderId, 'Error: Unable to generate image.', pageAccessToken);
+    }
+  },
+};
+
+const sendError = async (senderId, errorMessage, pageAccessToken) => {
+  await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
 };
