@@ -6,7 +6,7 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'shawty',
-  description: 'Fetch a TikTok video and send the details',
+  description: 'Fetch a TikTok video and send the details with the video',
   author: 'coffee',
 
   async execute(senderId) {
@@ -23,12 +23,16 @@ module.exports = {
         const title = data.title || 'No Title';
         const username = data.username || 'Unknown User';
 
-        // Send title and username first
-        const message = `Title: ${title}\nUsername: ${username}`;
-        await sendMessage(senderId, { text: message }, pageAccessToken);
+        // Send the details and video together
+        const message = {
+          text: `Title: ${title}\nUsername: ${username}`,
+          attachment: {
+            type: 'video',
+            payload: { url: data.videoDownloadLink }
+          }
+        };
 
-        // Send the video separately
-        await sendMessage(senderId, { attachment: { type: 'video', payload: { url: data.videoDownloadLink } } }, pageAccessToken);
+        await sendMessage(senderId, message, pageAccessToken);
       } else {
         await sendError(senderId, 'Error: Unable to fetch video details.', pageAccessToken);
       }
