@@ -2,7 +2,7 @@ const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
 const fs = require('fs');
 
-const token = fs.readFileSync('token.txt', 'utf8');
+const token = fs.readFileSync('token.txt', 'utf8').trim(); // Read token from file
 
 module.exports = {
   name: 'imagegen',
@@ -22,12 +22,12 @@ module.exports = {
     try {
       const response = await axios.post(apiUrl, { inputs: input }, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: "Bearer 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", // Use your specific token here
           "Content-Type": "application/json",
         }
       });
 
-      const imageUrl = response.data.url; // Adjust based on how the API returns the image URL
+      const imageUrl = response.data.url; // Adjust based on the actual response structure
 
       await sendMessage(senderId, { attachment: { type: 'image', payload: { url: imageUrl } } }, pageAccessToken);
     } catch (error) {
