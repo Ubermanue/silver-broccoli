@@ -12,10 +12,8 @@ module.exports = {
   author: 'coffee',
 
   async execute(senderId, args) {
-    // Default to "hi" if no query is provided
     const prompt = (args.join(' ') || 'hi').trim();
     
-    // Prepare the request to Morphic AI
     const formData = new FormData();
     formData.append("1", JSON.stringify({ id: "6399a7e212fa477d1a783edade27c8354a64e1ab", bound: null }));
     formData.append("2", JSON.stringify({ id: "9eed8f3e1c51044505fd5c0d73e8d2a92572691c", bound: null }));
@@ -44,11 +42,12 @@ module.exports = {
         }
       });
 
-      // Extract response text and image URLs
+      console.log('Response data:', data); // Debugging line
+
       const responseText = extractResponseText(data);
       const imgUrls = extractImageUrls(data);
 
-      // Handle image responses
+      // Send images if available
       if (imgUrls.length > 0) {
         for (const imgUrl of imgUrls) {
           const attachment = {
@@ -59,8 +58,7 @@ module.exports = {
         }
       }
 
-      // Send the text response
-      const formattedMessage = `${header}${responseText}${footer}`;
+      const formattedMessage = `${header}${responseText}${footer}`.trim();
       await sendMessage(senderId, { text: formattedMessage }, token);
 
     } catch (error) {
@@ -81,12 +79,12 @@ const extractResponseText = (data) => {
     text += result[1] || result[2] || "";
   }
 
-  return text.replace(/\$undefined/g, '');
+  return text.replace(/\$undefined/g, '').trim(); // Trim whitespace
 };
 
-// Extracts image URLs (modify this based on actual data structure)
+// Extracts image URLs
 const extractImageUrls = (data) => {
-  const regex = /"img_url":"([^"]+)"/g; // Adjust regex based on actual response format
+  const regex = /"img_url":"([^"]+)"/g; // Adjust based on actual response
   let result;
   const urls = [];
 
