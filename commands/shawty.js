@@ -6,22 +6,15 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'shawty',
-  description: 'Fetch TikTok video details and send the video',
+  description: 'Fetch a TikTok video and send the details',
   author: 'coffee',
 
-  async execute(senderId, args) {
+  async execute(senderId) {
     const pageAccessToken = token;
 
-    if (!Array.isArray(args) || args.length === 0) {
-      return await sendError(senderId, 'Error: Missing input!', pageAccessToken);
-    }
-
-    const inputUrl = args.join(' ').trim();
-    if (!isValidUrl(inputUrl)) {
-      return await sendError(senderId, 'Error: Invalid URL!', pageAccessToken);
-    }
-
-    const apiUrl = `https://shoti.kenliejugarap.com/getvideo.php?apikey=shoti-3673ed33bc8186f@b37aba4c425fa@36@e6f30c0863dae181779bad3ee08@6ae95834eb@c8d1ccdf1d21a@b5@b4dc41afe7d@b8063f202@19c1c3fbf7bf1cbb@b1cac4b2d71fabc6c1b760ac0769490baaf4e6@c50&url=${encodeURIComponent(inputUrl)}`;
+    // Predefined TikTok URL
+    const predefinedUrl = 'https://vt.tiktok.com/ZSYwJSnwn/';
+    const apiUrl = `https://shoti.kenliejugarap.com/getvideo.php?apikey=shoti-3673ed33bc8186f@b37aba4c425fa@36@e6f30c0863dae181779bad3ee08@6ae95834eb@c8d1ccdf1d21a@b5@b4dc41afe7d@b8063f202@19c1c3fbf7bf1cbb@b1cac4b2d71fabc6c1b760ac0769490baaf4e6@c50&url=${encodeURIComponent(predefinedUrl)}`;
 
     try {
       const { data } = await axios.get(apiUrl);
@@ -44,15 +37,6 @@ module.exports = {
       await sendError(senderId, 'Error: Unexpected error occurred while fetching the video.', pageAccessToken);
     }
   },
-};
-
-const isValidUrl = (url) => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
 };
 
 const sendError = async (senderId, errorMessage, pageAccessToken) => {
