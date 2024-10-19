@@ -14,14 +14,14 @@ module.exports = {
     const pageAccessToken = token;
 
     if (!args || args.length < 1) {
-      return await sendMessage(senderId, { text: '📷 | Please use this format:\npinterest <search term> <number of images (1-10)>' }, pageAccessToken);
+      return await sendMessage(senderId, { text: '📷 | Please use this format:\npinterest cat 1-10' }, pageAccessToken);
     }
 
     const searchTerm = args[0];
     let numImages = parseInt(args[1]) || 1;
-    numImages = Math.abs(numImages); // Use absolute value
-    numImages = Math.min(numImages, 10); // Limit to a maximum of 10
-    numImages = Math.max(numImages, 1); // Ensure at least 1
+    numImages = Math.abs(numImages);
+    numImages = Math.min(numImages, 10);
+    numImages = Math.max(numImages, 1);
 
     const apiUrl = `https://pin-kshitiz.vercel.app/pin?search=${encodeURIComponent(searchTerm)}`;
 
