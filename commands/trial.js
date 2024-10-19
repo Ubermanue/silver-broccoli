@@ -1,5 +1,9 @@
 const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
+const fs = require('fs');
+
+const tokenPath = 'path/to/your/token.txt';
+const token = fs.readFileSync(tokenPath, 'utf8').trim();
 
 module.exports = {
   name: 'trial',
@@ -25,13 +29,13 @@ module.exports = {
       const lyricsMessage = `🎶 | *Title:* ${title}\n*Artist:* ${artist}\n\n*Lyrics:*\n${lyrics}`;
 
       // Send the lyrics message first
-      await sendMessage(senderId, { text: lyricsMessage });
+      await sendMessage(senderId, { text: lyricsMessage }, token);
 
       // If an image is available, send it as a second message
       if (image) {
         await sendMessage(senderId, {
           attachment: { type: 'image', payload: { url: image } }
-        });
+        }, token);
       }
     } catch (error) {
       console.error('Error fetching lyrics:', error);
@@ -41,5 +45,5 @@ module.exports = {
 };
 
 const sendError = async (senderId, errorMessage) => {
-  await sendMessage(senderId, { text: errorMessage });
+  await sendMessage(senderId, { text: errorMessage }, token);
 };
