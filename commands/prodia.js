@@ -1,5 +1,6 @@
 const { createProdia } = require('prodia');
 const { sendMessage } = require('../handles/sendMessage');
+const axios = require('axios');
 
 const prodia = createProdia({
   apiKey: '79fa9d49-0f1e-4e21-a2c2-92891f2833f1',
@@ -19,16 +20,19 @@ module.exports = {
     const prompt = args.join(' ');
 
     try {
-      const job = await prodia.generate({
-        prompt: prompt,
+      // Make a request to the Prodia API to generate the image
+      const response = await axios.post('https://api.prodia.com/v1/generate', {
+        prompt,
+        api_key: prodia.apiKey,
       });
 
-      const { imageUrl, status } = await prodia.wait(job);
+      // Ensure that the response has a URL for the generated image
+      const imageUrl = response.data.image_url; // Adjust based on the actual response structure
 
-      if (status === 'completed') {
+      if (imageUrl) {
         await sendMessage(senderId, { attachment: { type: 'image', payload: { url: imageUrl } } }, pageAccessToken);
       } else {
-        await sendMessage(senderId, { text: 'Error: No image generated.' }, pageAccessToken);
+        await sendMessage(senderId, { text: 'Error: No image URL returned from Prodia.' }, pageAccessToken);
       }
     } catch (error) {
       console.error('Error:', error);
