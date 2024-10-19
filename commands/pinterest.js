@@ -24,13 +24,16 @@ module.exports = {
     }
 
     const searchTerm = args.slice(0, -1).join(' ').trim();
-    const numImages = parseInt(args.at(-1), 10);
+    let numImages = parseInt(args.at(-1), 10);
 
-    if (isNaN(numImages) || numImages < 1) {
-      return await sendError(senderId, 'Error: Invalid number of images. Please provide a number between 1 and 10.', pageAccessToken);
+    if (numImages < 0) {
+      numImages = Math.abs(numImages);
     }
 
-    const imageCount = Math.min(numImages, 10);
+    if (isNaN(numImages) || numImages < 1 || numImages > 10) {
+      return await sendError(senderId, 'Error: Please provide a number between 1 and 10.', pageAccessToken);
+    }
+
     const apiUrl = `https://pin-kshitiz.vercel.app/pin?search=${encodeURIComponent(searchTerm)}`;
 
     try {
@@ -38,7 +41,7 @@ module.exports = {
       const images = data?.result || [];
 
       if (images.length) {
-        const selectedImages = images.slice(0, imageCount);
+        const selectedImages = images.slice(0, numImages);
         for (const imageUrl of selectedImages) {
           await sendMessage(senderId, { image: { url: imageUrl } }, pageAccessToken);
         }
