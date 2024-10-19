@@ -794,6 +794,11 @@ performance-now@^2.1.0:
   resolved "https://registry.npmjs.org/performance-now/-/performance-now-2.1.0.tgz"
   integrity sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==
 
+prodia@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/prodia/-/prodia-1.0.6.tgz#42311a3b0207a2cef5ee6819d2dbde534f657456"
+  integrity sha512-FL96teh+jxjNKl6WJpcxbUhuzjIzowOP7UPWdjCaGwb0peRcQ37mfTTQy9PmHgx5w8Ez5HSzoMJ1v/V6CrinUQ==
+
 proxy-addr@~2.0.7:
   version "2.0.7"
   resolved "https://registry.npmjs.org/proxy-addr/-/proxy-addr-2.0.7.tgz"
