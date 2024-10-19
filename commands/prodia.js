@@ -24,24 +24,22 @@ module.exports = {
       const response = await axios.post('https://api.prodia.com/v1/generate', {
         prompt,
         api_key: prodia.apiKey,
-      }, {
-        responseType: 'arraybuffer' // Ensure response is treated as binary
       });
 
-      // Create a buffer from the response data
-      const imageBuffer = Buffer.from(response.data, 'binary');
+      // Assuming the API returns a URL of the generated image
+      const imageUrl = response.data.image_url; // Adjust based on the actual response structure
 
-      // Convert the buffer to a Base64 string
-      const base64Image = imageBuffer.toString('base64');
+      // Fetch the image data directly
+      const imageResponse = await axios.get(imageUrl, { responseType: 'stream' });
 
-      // Send the image as an attachment
-      await sendMessage(senderId, { 
-        attachment: { 
-          type: 'image', 
-          payload: { 
-            url: `data:image/jpeg;base64,${base64Image}` // Convert to base64
-          } 
-        } 
+      // Send the image as an attachment using the stream
+      await sendMessage(senderId, {
+        attachment: {
+          type: 'image',
+          payload: {
+            url: imageUrl // Send the image URL directly if available
+          }
+        }
       }, pageAccessToken);
     } catch (error) {
       console.error('Error:', error.response ? error.response.data : error.message);
