@@ -1,83 +1,54 @@
 const axios = require('axios');
-const fs = require('fs');
-
-async function generateImage(prompt) {
-  const token = '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';
-  const url = "https://api-inference.huggingface.co/models/davisbro/half_illustration";
-  const headers = {
-    "Authorization": `Bearer ${token}`,
-    "Content-Type": "application/json"
-  };
-
-  const body = {
-    inputs: prompt
-  };
-
-  try {
-    const response = await axios.post(url, body, {
-      headers: headers,
-      responseType: 'arraybuffer'
-    });
-
-    const buffer = Buffer.from(response.data);
-    const imagePath = `${__dirname}/cache/generated_image.png`;
-    fs.writeFileSync(imagePath, buffer);
-
-    console.log(`Image generated and saved to ${imagePath}`);
-    return imagePath;
-  } catch (error) {
-    console.error("Error generating image:", error.message);
-    console.error("Error response:", error.response.data);
-    return null;
-  }
-}
-
-async function execute(senderId, args) {
-  const pageAccessToken = fs.readFileSync('token.txt', 'utf8');
-
-  if (!Array.isArray(args) || args.length === 0) {
-    return await sendError(senderId, 'Error: Missing input!', pageAccessToken);
-  }
-
-  const prompt = args.join(' ').trim();
-  const imagePath = await generateImage(prompt);
-
-  if (imagePath) {
-    await sendAttachment(senderId, imagePath, pageAccessToken);
-  } else {
-    await sendError(senderId, 'Error: Unable to generate image.', pageAccessToken);
-  }
-}
-
-const sendAttachment = async (senderId, filePath, pageAccessToken) => {
-  try {
-    const payload = {
-      type: 'image',
-      payload: {
-        url: `file://${filePath}`,
-        is_reusable: true
-      }
-    };
-
-    await sendMessage(senderId, { attachment: payload }, pageAccessToken);
-  } catch (error) {
-    console.error('Error sending attachment:', error);
-    await sendError(senderId, 'Error: Unable to send the generated image.', pageAccessToken);
-  }
-};
-
-const sendError = async (senderId, errorMessage, pageAccessToken) => {
-  await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
-};
-
-const sendMessage = async (senderId, message, pageAccessToken) => {
-  // Implement your message sending logic here
-  console.log(`Sending message to ${senderId}: ${JSON.stringify(message)}`);
-};
+const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'imagegen',
-  description: 'Generate an image based on a prompt',
+  description: 'Generate images using Hugging Face API',
+  usage: '-imagegen <prompt>',
   author: 'coffee',
-  execute,
+  async execute(senderId, args, pageAccessToken) {
+    if (!args || !Array.isArray(args) || args.length === 0) {
+      await sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
+      return;
+    }
+
+    const prompt = args.join(' ');
+
+    try {
+      const token = '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';
+      const url = "https://api-inference.huggingface.co/models/davisbro/half_illustration";
+      const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      };
+
+      const body = {
+        inputs: prompt
+      };
+
+      const response = await axios.post(url, body, {
+        headers: headers,
+        responseType: 'arraybuffer'
+      });
+
+      // Convert the image buffer to base64
+      const base64Image = Buffer.from(response.data).toString('base64');
+      const imageUrl = `data:image/png;base64,${base64Image}`;
+
+      // Send the image as an attachment
+      await sendMessage(senderId, { 
+        attachment: { 
+          type: 'image', 
+          payload: { 
+            url: imageUrl,
+            is_reusable: true
+          } 
+        } 
+      }, pageAccessToken);
+
+    } catch (error) {
+      console.error('Error:', error);
+      await sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
+    }
+  }
 };
