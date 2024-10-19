@@ -24,19 +24,25 @@ module.exports = {
       const response = await axios.post('https://api.prodia.com/v1/generate', {
         prompt,
         api_key: prodia.apiKey,
+      }, {
+        responseType: 'arraybuffer' // Ensure response is treated as binary
       });
 
-      // Ensure that the response has a URL for the generated image
-      const imageUrl = response.data.image_url; // Adjust based on the actual response structure
+      // Create a buffer from the response data
+      const imageBuffer = Buffer.from(response.data, 'binary');
 
-      if (imageUrl) {
-        await sendMessage(senderId, { attachment: { type: 'image', payload: { url: imageUrl } } }, pageAccessToken);
-      } else {
-        await sendMessage(senderId, { text: 'Error: No image URL returned from Prodia.' }, pageAccessToken);
-      }
+      // Send the image as an attachment
+      await sendMessage(senderId, { 
+        attachment: { 
+          type: 'image', 
+          payload: { 
+            url: `data:image/jpeg;base64,${imageBuffer.toString('base64')}` // Convert to base64
+          } 
+        } 
+      }, pageAccessToken);
     } catch (error) {
-      console.error('Error:', error);
-      await sendMessage(senderId, { text: 'Error: Could not generate image.' }, pageAccessToken);
+      console.error('Error:', error.response ? error.response.data : error.message);
+      await sendMessage(senderId, { text: 'Error: Could not generate image. Please check your request and try again.' }, pageAccessToken);
     }
   }
 };
