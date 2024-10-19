@@ -27,6 +27,7 @@ module.exports = {
           }
         };
 
+        // Send both messages at the same time
         await Promise.all([
           sendMessage(senderId, detailsMessage, pageAccessToken),
           sendMessage(senderId, videoMessage, pageAccessToken)
