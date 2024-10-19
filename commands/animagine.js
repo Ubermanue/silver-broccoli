@@ -6,8 +6,8 @@ const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'animagine',
-  description: 'Generate an animated image based on a prompt',
-  usage: '-animagine <prompt>',
+  description: 'Generates an anime image based on a prompt.',
+  usage: 'animagine [prompt]',
   author: 'coffee',
 
   async execute(senderId, args) {
@@ -21,14 +21,18 @@ module.exports = {
     const apiUrl = `https://markdevs-last-api.onrender.com/emi?prompt=${encodeURIComponent(prompt)}`;
 
     try {
-      const { data } = await axios.get(apiUrl);
+      const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
+      const imageBuffer = Buffer.from(response.data, 'binary').toString('base64');
+      
+      const payload = {
+        type: 'image',
+        payload: {
+          is_reusable: true,
+          url: `data:image/jpeg;base64,${imageBuffer}`
+        },
+      };
 
-      if (data?.imageUrl) {
-        const payload = { type: 'image', payload: { url: data.imageUrl } };
-        await sendMessage(senderId, { attachment: payload }, pageAccessToken);
-      } else {
-        await sendError(senderId, 'Error: Unable to generate image.', pageAccessToken);
-      }
+      await sendMessage(senderId, { attachment: payload }, pageAccessToken);
     } catch (error) {
       console.error('Error generating image:', error);
       await sendError(senderId, 'Error: Unexpected error occurred while generating image.', pageAccessToken);
