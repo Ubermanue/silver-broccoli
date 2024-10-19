@@ -1,46 +1,49 @@
 const axios = require('axios');
+const { sendMessage } = require('../handles/sendMessage');
+const fs = require('fs');
+
+const token = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
-  name: 'lyrics',
-  description: 'Fetch song lyrics.',
+  name: 'trial',
+  description: 'Fetch song lyrics',
   usage: '-lyrics <song name>',
-  author: 'Deku (rest api)',
+  author: 'Your Name',
 
-  async execute(senderId, args, pageAccessToken, sendMessage) {
-    const query = args.join(' ');
+  async execute(senderId, args) {
+    const pageAccessToken = token;
+
+    // Set a default query if none is provided
+    const songQuery = args.join(' ') || 'Never Gonna Give You Up';
+
+    const apiUrl = `https://joshweb.click/search/lyrics?q=${encodeURIComponent(songQuery)}`;
+
     try {
-      const apiUrl = `https://lyrist.vercel.app/api/${encodeURIComponent(query)}`;
-      const response = await axios.get(apiUrl);
-      const { lyrics, title, artist } = response.data;
+      const { data: { result: lyricsData } } = await axios.get(apiUrl);
 
-      if (lyrics) {
-        const lyricsMessage = `🎧 | Title: ${title}\n🎤 | Artist: ${artist}\n・──── >ᴗ< ─────・\n${lyrics}\n・───────────・`;
+      if (!lyricsData || !lyricsData.lyrics) {
+        return await sendError(senderId, 'Error: Lyrics not found.');
+      }
 
-        // Split the lyrics message into chunks if it exceeds 2000 characters
-        const maxMessageLength = 2000;
-        if (lyricsMessage.length > maxMessageLength) {
-          const messages = splitMessageIntoChunks(lyricsMessage, maxMessageLength);
-          for (const message of messages) {
-            sendMessage(senderId, { text: message }, pageAccessToken);
-          }
-        } else {
-          sendMessage(senderId, { text: lyricsMessage }, pageAccessToken);
-        }
-      } else {
-        console.error('Error: No lyrics found in the response.');
-        sendMessage(senderId, { text: 'Sorry, no lyrics were found for your query.' }, pageAccessToken);
+      const { title, artist, lyrics, image } = lyricsData;
+      const lyricsMessage = `🎶 | *Title:* ${title}\n*Artist:* ${artist}\n\n*Lyrics:*\n${lyrics}`;
+
+      // Send the lyrics message first
+      await sendMessage(senderId, { text: lyricsMessage }, pageAccessToken);
+
+      // If an image is available, send it as a second message
+      if (image) {
+        await sendMessage(senderId, {
+          attachment: { type: 'image', payload: { url: image } }
+        }, pageAccessToken);
       }
     } catch (error) {
-      console.error('Error calling Lyrics API:', error.message);
-      sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
+      console.error('Error fetching lyrics:', error);
+      await sendError(senderId, 'Error: Unable to fetch lyrics.');
     }
-  }
+  },
 };
 
-function splitMessageIntoChunks(message, chunkSize) {
-  const chunks = [];
-  for (let i = 0; i < message.length; i += chunkSize) {
-    chunks.push(message.slice(i, i + chunkSize));
-  }
-  return chunks;
-}
+const sendError = async (senderId, errorMessage) => {
+  await sendMessage(senderId, { text: errorMessage }, token);
+};
