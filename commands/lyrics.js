@@ -26,7 +26,7 @@ module.exports = {
       }
 
       const { title, artist, lyrics, image } = lyricsData;
-      const lyricsMessage = `🎶 | *Title:* ${title}\n*Artist:* ${artist}\n\n*Lyrics:*\n${lyrics}`;
+      const lyricsMessage = `🎧 | 𝐓𝐢𝐭𝐥𝐞: ${title}\n🎙️ | 𝐀𝐫𝐭𝐢𝐬𝐭: ${artist}\n\n${lyrics}`;
 
       // Send the lyrics message first
       await sendMessage(senderId, { text: lyricsMessage }, pageAccessToken);
