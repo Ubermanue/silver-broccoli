@@ -1,5 +1,4 @@
 const request = require('request');
-const axios = require('axios');
 
 const sendMessage = (senderId, message, pageAccessToken) => {
   if (!message || (!message.text && !message.attachment)) {
@@ -31,22 +30,4 @@ const sendMessage = (senderId, message, pageAccessToken) => {
   });
 };
 
-async function getMessageData(messageId, pageAccessToken) {
-  try {
-    const response = await axios.get(`https://graph.facebook.com/v12.0/${messageId}`, {
-      params: {
-        fields: 'message,attachments',
-        access_token: pageAccessToken
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching message data:', error);
-    return null;
-  }
-}
-
-module.exports = {
-  sendMessage,
-  getMessageData
-};
+module.exports = { sendMessage };
