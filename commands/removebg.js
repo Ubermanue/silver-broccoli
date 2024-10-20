@@ -17,20 +17,22 @@ module.exports = {
       // Get the message data of the replied-to message
       const repliedMessage = await getMessageData(messageId, pageAccessToken);
 
-      if (!repliedMessage || !repliedMessage.attachments || repliedMessage.attachments.length === 0) {
-        return await sendError(senderId, 'Error: Please reply to a message with an image attachment.', pageAccessToken);
+      console.log("Replied Message Data:", repliedMessage); // Debug log to check the message structure
+
+      if (!repliedMessage || !repliedMessage.message || !repliedMessage.message.attachments || repliedMessage.message.attachments.length === 0) {
+        return await sendError(senderId, 'Error: Please reply to a message with an image attachment.', pageAccessToken, threadId);
       }
 
-      const attachment = repliedMessage.attachments[0];
-      if (attachment.type !== 'image') {
-        return await sendError(senderId, 'Error: The replied message does not contain an image.', pageAccessToken);
+      const attachment = repliedMessage.message.attachments[0];
+      if (attachment.type !== 'photo') { // 'photo' type instead of 'image' based on Messenger's API
+        return await sendError(senderId, 'Error: The replied message does not contain an image.', pageAccessToken, threadId);
       }
 
       const imageUrl = attachment.payload.url;
       await handleRemoveBg(senderId, imageUrl, pageAccessToken, threadId);
     } catch (error) {
       console.error("Error fetching replied message:", error);
-      await sendError(senderId, "⚠️ Something went wrong. Please try again later.", pageAccessToken);
+      await sendError(senderId, "⚠️ Something went wrong. Please try again later.", pageAccessToken, threadId);
     }
   },
 };
@@ -76,15 +78,6 @@ const handleRemoveBg = async (senderId, imageUrl, pageAccessToken, threadId) => 
   } catch (error) {
     console.error("RemoveBG API call failed: ", error);
     await sendError(senderId, "⚠️ Something went wrong. Please try again later.", pageAccessToken, threadId);
-
-    // Notify admin of the error
-    const errorMessage = `
-      ----RemoveBG Log----
-      Something is causing an error with the removebg command.
-      Check if the API key is still valid at: https://www.remove.bg/dashboard
-    `;
-    // You might want to implement a way to send this to admin(s)
-    console.error(errorMessage);
   }
 };
 
