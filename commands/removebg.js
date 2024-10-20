@@ -1,6 +1,7 @@
 const axios = require('axios');
-const { sendMessage, getMessageData } = require('../handles/sendMessage');
+const { sendMessage } = require('../handles/sendMessage');
 const fs = require('fs');
+const { getRepliedImage } = require('../handles/replyHandler');
 
 const token = fs.readFileSync('token.txt', 'utf8');
 const apiKey = "hgEG2LSoC8VD5A2akNvcFySR"; // Replace with your actual Remove.bg API key
@@ -14,24 +15,15 @@ module.exports = {
     const pageAccessToken = token;
 
     try {
-      // Get the message data of the replied-to message
-      const repliedMessage = await getMessageData(messageId, pageAccessToken);
+      const { imageUrl, error } = await getRepliedImage(messageId, pageAccessToken);
 
-      console.log("Replied Message Data:", repliedMessage); // Debug log to check the message structure
-
-      if (!repliedMessage || !repliedMessage.message || !repliedMessage.message.attachments || repliedMessage.message.attachments.length === 0) {
-        return await sendError(senderId, 'Error: Please reply to a message with an image attachment.', pageAccessToken, threadId);
+      if (error) {
+        return await sendError(senderId, `Error: ${error}`, pageAccessToken, threadId);
       }
 
-      const attachment = repliedMessage.message.attachments[0];
-      if (attachment.type !== 'photo') { // 'photo' type instead of 'image' based on Messenger's API
-        return await sendError(senderId, 'Error: The replied message does not contain an image.', pageAccessToken, threadId);
-      }
-
-      const imageUrl = attachment.payload.url;
       await handleRemoveBg(senderId, imageUrl, pageAccessToken, threadId);
     } catch (error) {
-      console.error("Error fetching replied message:", error);
+      console.error("Error in removebg command:", error);
       await sendError(senderId, "⚠️ Something went wrong. Please try again later.", pageAccessToken, threadId);
     }
   },
@@ -39,7 +31,6 @@ module.exports = {
 
 const handleRemoveBg = async (senderId, imageUrl, pageAccessToken, threadId) => {
   try {
-    // Send a "processing" message
     await sendMessage(senderId, { text: "🕒 Processing image... Please wait." }, pageAccessToken, threadId);
 
     const response = await axios.post(
@@ -72,7 +63,6 @@ const handleRemoveBg = async (senderId, imageUrl, pageAccessToken, threadId) => 
       }
     }, pageAccessToken, threadId);
 
-    // Delete the temporary file after sending
     fs.unlinkSync(tempFilePath);
 
   } catch (error) {
